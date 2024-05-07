@@ -1,5 +1,5 @@
-include verilate_ips.mk
-include verilate_rtl.mk
+#include verilate_ips.mk
+#include verilate_rtl.mk
 
 run: verilated/Vsim_hwpe
 	cd verilated; HWPE_TB_STIM_INSTR=../../../build/sw/tb_hwpe.c/stim_instr.txt HWPE_TB_STIM_DATA=../../../build/sw/tb_hwpe.c/stim_data.txt ./Vsim_hwpe; cd -

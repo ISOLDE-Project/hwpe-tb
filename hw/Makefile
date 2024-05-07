@@ -33,16 +33,16 @@ clean-env:
 	rm -rf .cached_ipdb.json
 
 update:
-	./bender update
+	bender update
 
 scripts: update
-	./bender script vsim               \
+	bender script vsim               \
 	--vlog-arg="$(compile_flag)"     \
 	--vcom-arg="-pedanticerrors"     \
 	-t rtl -t test > ${compile_script}
 
 veri-scripts: update
-	./bender script verilator -t rtl -t verilator > $(verilator_script)
+	bender script verilator -t rtl -t verilator > $(verilator_script)
 
 opt:
 	vopt +acc=npr -o vopt_tb -floatparameters+tb_hwpe tb_hwpe -work work

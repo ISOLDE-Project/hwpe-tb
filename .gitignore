@@ -1,0 +1,13 @@
+install/
+build/
+.bender/
+hw/Bender.lock
+hw/veri/files
+hw/veri/verilated/
+hw/__pycache__/
+hw/compile.tcl
+hw/ips/common_verification/
+hw/ips/scm/
+hw/ips/tech_cells_generic/
+hw/ips/zeroriscy/
+hw/ipstools/
