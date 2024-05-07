@@ -1,3 +1,32 @@
+# ISOLDE
+## Prepare environment
+
+A RISC-V compiler is needed. E.g. :
+```
+wget https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2024.04.12/riscv32-elf-ubuntu-20.04-gcc-nightly-2024.04.12-nightly.tar.gz
+```
+Unpack the archive and update the eth.sh file:  
+```
+export PULP_RISCV_GCC_TOOLCHAIN=<path_to_gnu_toolchain>
+```
+Build locally the verilator:  
+```
+git submodule update --init toolchain/verilator/
+make verilator
+```
+## Verilator Simulation
+```
+. ./eth.sh
+make build-hw-verilator
+make run-verilator
+```
+Expected output:   
+```
+Welcome to the HWPE Verilator testbench!
+errors=00000000
+- /home/uic52463/hdd2/isolde-project/hwpe-tb/hw/rtl/sim_hwpe.sv:304: Verilog $finish
+main_time=627.001000ns
+```
 # Introduction
 
 PULP systems support integration of hardware accelerators (Hardware

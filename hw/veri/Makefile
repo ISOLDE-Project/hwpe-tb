@@ -1,5 +1,7 @@
 #include verilate_ips.mk
 #include verilate_rtl.mk
+num_cores := $(shell nproc)
+num_cores_half := $(shell echo "$$(($(num_cores) / 2))")
 
 run: verilated/Vsim_hwpe
 	cd verilated; HWPE_TB_STIM_INSTR=../../../build/sw/tb_hwpe.c/stim_instr.txt HWPE_TB_STIM_DATA=../../../build/sw/tb_hwpe.c/stim_data.txt ./Vsim_hwpe; cd -
@@ -7,7 +9,7 @@ run: verilated/Vsim_hwpe
 all: verilated/Vsim_hwpe
 
 verilated/Vsim_hwpe: verilated/Vsim_hwpe.mk
-	make OPT_FAST="-O3 -fno-stack-protector" OPT_SLOW="-O2 -fno-stack-protector" -C verilated -f Vsim_hwpe.mk Vsim_hwpe
+	make OPT_FAST="-O3 -fno-stack-protector" OPT_SLOW="-O2 -fno-stack-protector" -C verilated -f Vsim_hwpe.mk Vsim_hwpe -j$(num_cores_half)
 
 verilated/Vsim_hwpe.mk:
 	verilator -O3 -cc -Wno-fatal --exe ../sim_main.cpp --Mdir verilated \
