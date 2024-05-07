@@ -7,3 +7,6 @@
 [submodule "hw/ips/hwpe-mac-engine"]
 	path = hw/ips/hwpe-mac-engine
 	url = https://github.com/pulp-platform/hwpe-mac-engine
+[submodule "toolchain/verilator"]
+	path = toolchain/verilator
+	url = https://github.com/verilator/verilator

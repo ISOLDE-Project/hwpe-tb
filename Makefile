@@ -20,14 +20,27 @@ P_STALL ?= 0.0
 BUILD_DIR ?= build
 TEST_SRCS ?= sw/tb_hwpe.c
 
+num_cores := $(shell nproc)
+num_cores_half := $(shell echo "$$(($(num_cores) / 2))")
+
+
+INSTALL_PREFIX          ?= install
+INSTALL_DIR             ?= $(CURDIR)/${INSTALL_PREFIX}
+GCC_INSTALL_DIR         ?= ${INSTALL_DIR}/riscv-gcc
+LLVM_INSTALL_DIR        ?= ${INSTALL_DIR}/riscv-llvm
+ISA_SIM_INSTALL_DIR     ?= ${INSTALL_DIR}/riscv-isa-sim
+ISA_SIM_MOD_INSTALL_DIR ?= ${INSTALL_DIR}/riscv-isa-sim-mod
+VERIL_INSTALL_DIR       ?= ${INSTALL_DIR}/verilator
+VERIL_VERSION           ?= v5.024
+
 # Bender stuff
-BENDER_VERSION = 0.23.2
-BENDER_INSTALL_DIR = hw
+#BENDER_VERSION = 0.23.2
+#BENDER_INSTALL_DIR = hw
 
 # Setup toolchain (from SDK) and options
 CC=$(PULP_RISCV_GCC_TOOLCHAIN)/bin/riscv32-unknown-elf-gcc
 LD=$(PULP_RISCV_GCC_TOOLCHAIN)/bin/riscv32-unknown-elf-gcc
-CC_OPTS=-march=rv32imc -D__riscv__ -O2 -g -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -MMD -MP
+CC_OPTS=-march=rv32g -D__riscv__ -O2 -g -Wextra -Wall -Wno-unused-parameter -Wno-unused-variable -Wno-unused-function -Wundef -fdata-sections -ffunction-sections -MMD -MP
 LD_OPTS=-march=rv32imc -D__riscv__ -MMD -MP -nostartfiles -nostdlib -Wl,--gc-sections
 
 # Setup build object dirs
@@ -72,19 +85,20 @@ else
 	cd $(BUILD_DIR)/$(TEST_SRCS); vsim vopt_tb -gSTIM_INSTR=stim_instr.txt -gSTIM_DATA=stim_data.txt -gPROB_STALL=$(P_STALL)
 endif
 
-run-verilator: $(CRT)
+run-verilator: all $(CRT)
 	cd $(BUILD_DIR)/$(TEST_SRCS); HWPE_TB_STIM_INSTR=./stim_instr.txt HWPE_TB_STIM_DATA=./stim_data.txt verilated/Vsim_hwpe
 
 all: $(STIM_INSTR) $(STIM_DATA)
 
-update-ips: bender
+.PHONY: update-ips
+update-ips: 
 	git submodule update --init --recursive
 	$(MAKE) -C hw scripts veri-scripts
 
 build-hw:
 	$(MAKE) -C hw lib build opt
 
-build-hw-verilator:
+build-hw-verilator: update-ips
 	$(MAKE) -C hw/veri clean-hard all
 
 clean-hw:
@@ -102,3 +116,31 @@ hw/bender:
 	curl --proto '=https'  \
 	--tlsv1.2 https://pulp-platform.github.io/bender/init -sSf | sh -s -- 0.27.1
 
+
+# Verilator
+.PHONY: verilator
+verilator: ${VERIL_INSTALL_DIR}
+
+${VERIL_INSTALL_DIR}: Makefile
+	# Checkout the right version
+	cd $(CURDIR)/toolchain/verilator && git reset --hard && git fetch && git checkout ${VERIL_VERSION}
+	# Compile verilator
+	cd $(CURDIR)/toolchain/verilator && git clean -xfdf && autoconf && \
+		./configure --prefix=$(VERIL_INSTALL_DIR) && make -j$(num_cores_half) && make install
+
+.PHONY: print-env
+print-env:
+	@echo "The Makefile is located in $(CURDIR)"
+	@echo "mkfile_path: $(mkfile_path)"
+	@echo "PULP_RISCV_GCC_TOOLCHAIN: $(PULP_RISCV_GCC_TOOLCHAIN)"
+	@echo "Cores: $(num_cores)"
+	@echo "Cores divided by 2: $(num_cores_half)"
+
+# Makefile to get the number of cores and divide it by 2
+
+.PHONY: cores
+
+cores:
+	@num_cores=$$(nproc); \
+	num_cores=$$((num_cores / 2)); \
+	echo "Number of cores available on this machine (divided by 2): $$num_cores"
