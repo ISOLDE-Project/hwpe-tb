@@ -11,3 +11,6 @@ hw/ips/scm/
 hw/ips/tech_cells_generic/
 hw/ips/zeroriscy/
 hw/ipstools/
+*.vcd
+*.dat
+obj_dir/
