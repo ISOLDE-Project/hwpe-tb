@@ -18,7 +18,7 @@
 
 #define CYCLES    1000 
 #define CLK_DELAY  200
-#define TIMEOUT   1*CYCLES
+#define TIMEOUT   110*CYCLES
 
 // Current simulation time (64-bit unsigned)
 vluint64_t main_time = 0;

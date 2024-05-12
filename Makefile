@@ -126,7 +126,7 @@ ${VERIL_INSTALL_DIR}: Makefile
 	cd $(CURDIR)/toolchain/verilator && git reset --hard && git fetch && git checkout ${VERIL_VERSION}
 	# Compile verilator
 	cd $(CURDIR)/toolchain/verilator && git clean -xfdf && autoconf && \
-		./configure --prefix=$(VERIL_INSTALL_DIR) && make -j$(num_cores_half) && make install
+	./configure --prefix=$(VERIL_INSTALL_DIR) CXX=g++-10  && make -j$(num_cores_half)  && make install
 
 .PHONY: print-env
 print-env:

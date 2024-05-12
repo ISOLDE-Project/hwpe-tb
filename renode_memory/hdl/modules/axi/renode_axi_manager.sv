@@ -19,9 +19,13 @@ module renode_axi_manager (
   wire clk = bus.aclk;
 
   always @(connection.reset_assert_request) begin
-    bus.arvalid = 0;
+    $display("renode_axi_manager::reset_assert_request");
     bus.awvalid = 0;
     bus.wvalid  = 0;
+    bus.bready  = 0;
+    bus.arvalid = 0;
+    bus.rready  = 0;
+//
     bus.areset_n = 0;
     // The reset takes 2 cycles to prevent a race condition without usage of a non-blocking assigment.
     repeat (2) @(posedge clk);
@@ -156,7 +160,8 @@ module renode_axi_manager (
 
     // Configure transaction with only one burst.
     bus.awlen = 0;
-    bus.awburst = 0;
+    //bus.awburst = 0;
+    bus.awburst =  renode_axi_pkg::Incrementing;
     bus.awlock = 0;
     bus.awprot = 0;
 

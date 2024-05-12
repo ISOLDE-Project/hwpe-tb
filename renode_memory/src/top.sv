@@ -7,7 +7,7 @@
 // instead.
 
 
-`include "axi/typedef.svh"
+//`include "axi/typedef.svh"
 //`include "axi/assign.svh"
 
 `define __AXI_TO_AW(__opt_as, __lhs, __lhs_sep, __rhs, __rhs_sep)   \
@@ -91,69 +91,86 @@ package renode_memory_pkg;
 
 
 
-  `AXI_TYPEDEF_ALL(mem_in, addr_t, id_t, data_t, strb_t, user_t)
-  `AXI_TYPEDEF_ALL(mem_out, addr_t, id_t, data_t, strb_t, user_t)
+  // `AXI_TYPEDEF_ALL(mem_in, addr_t, id_t, data_t, strb_t, user_t)
+  // `AXI_TYPEDEF_ALL(mem_out, addr_t, id_t, data_t, strb_t, user_t)
 
-  `AXI_TYPEDEF_ALL(axi_connection, addr_t, id_t, data_t, strb_t, user_t)
+  // `AXI_TYPEDEF_ALL(axi_connection, addr_t, id_t, data_t, strb_t, user_t)
 
 
 endpackage
 
 module slave (
-    input logic                           clk,
-    input logic                           rst,
-    input renode_pkg::bus_connection bus_peripheral,
+    //input logic                      clk,
+    //input logic                      areset_n,
+    renode_axi_if s_axi_if,
+    input renode_pkg::bus_connection bus_peripheral
 
-    input renode_memory_pkg::mem_in_req_t mem_in_req_i,
-    output renode_memory_pkg::mem_in_resp_t mem_in_req_o
+    //input  renode_memory_pkg::mem_in_req_t  mem_in_req_i,
+    //output renode_memory_pkg::mem_in_resp_t mem_in_req_o
 );
   logic gate;
-  logic i_clk;
-  assign i_clk = clk && gate;
+  // logic i_clk;
+  // assign i_clk = clk && gate;
 
-  renode_axi_if s_axi_if (.aclk(i_clk));
+  //renode_axi_if s_axi_if (.aclk(clk));
+  //assign s_axi_if.areset_n = areset_n;
 
-  `__REQ_TO_AXI_IF(s_axi_if, mem_in_req_i)
-  `__RESP_TO_AXI_IF(s_axi_if, mem_in_req_o)
+  //`__REQ_TO_AXI_IF(s_axi_if, mem_in_req_i)
+  //`__RESP_TO_AXI_IF(s_axi_if, mem_in_req_o)
 
 
-  renode_axi_subordinate m_axi_mem (
+  renode_axi_subordinate s_axi_mem (
       s_axi_if,
       bus_peripheral
   );
 
-  always_ff @(posedge clk ) begin
-        if (! rst) begin
-            gate = 0;
-            mem_in_req_o.aw_ready=1;
-            mem_in_req_o.w_ready=1;
-            mem_in_req_o.b_valid=1;
-            mem_in_req_o.ar_ready=1;
-            mem_in_req_o.r_valid=1;
-        end else begin
-          gate=1;
-        end
-    end
+  always @(bus_peripheral.write_transaction_request) begin    $display("slave::Event::write_transaction_request");write_transaction();end
+
+  task static write_transaction();
+    message_t message;
+
+    case (bus_peripheral.write_transaction_data_bits)
+      renode_pkg::Byte: message.action = renode_pkg::pushByte;
+      renode_pkg::Word: message.action = renode_pkg::pushWord;
+      renode_pkg::DoubleWord: message.action = renode_pkg::pushDoubleWord;
+      renode_pkg::QuadWord: message.action = renode_pkg::pushQuadWord;
+      default: begin
+        // connection.fatal_error($sformatf(
+        //                        "Renode doesn't support access with the 'b%b mask from a bus controller.",
+        //                        bus_peripheral.read_transaction_data_bits
+        //                        ));
+        bus_peripheral.write_respond(1);
+        return;
+      end
+    endcase
+    message.address = bus_peripheral.write_transaction_address;
+    message.data = bus_peripheral.write_transaction_data;
+
+    // connection.send_to_async_receiver(message);
+    bus_peripheral.write_respond(0);
+  endtask
 
 endmodule
 
 
 module master (
-    input  logic                            clk,
-    input  logic                            rst,
-    input renode_pkg::bus_connection bus_controller,
-    output renode_memory_pkg::mem_out_req_t mem_out_req_o,
-    input renode_memory_pkg::mem_out_resp_t mem_out_req_i
+    //input  logic                             clk,
+    //input  logic                             areset_n,
+          renode_axi_if              m_axi_if,
+    input renode_pkg::bus_connection bus_controller
+    //output renode_memory_pkg::mem_out_req_t  mem_out_req_o,
+    //input  renode_memory_pkg::mem_out_resp_t mem_out_req_i
 );
 
   logic gate;
-  logic i_clk;
-  assign i_clk = clk && gate;
+  // logic i_clk;
+  // assign i_clk = clk && gate;
 
-  renode_axi_if m_axi_if (.aclk(i_clk));
+  //renode_axi_if m_axi_if (.aclk(clk));
+  //assign m_axi_if.areset_n = areset_n;
 
-  `__REQ_TO_AXI_IF(m_axi_if, mem_out_req_o)
-  `__RESP_TO_AXI_IF(m_axi_if, mem_out_req_i)
+  // `__REQ_TO_AXI_IF(m_axi_if, mem_out_req_o)
+  // `__RESP_TO_AXI_IF(m_axi_if, mem_out_req_i)
 
 
   renode_axi_manager m_axi_mem (
@@ -163,27 +180,19 @@ module master (
 
 
   address_t address = 32'h10;
-  valid_bits_e data_bits=renode_pkg::Word; 
-  data_t data = 32'h100;; 
+  valid_bits_e data_bits = renode_pkg::Word;
+  data_t data = 32'h100;
+  ;
   bit is_error;
-  
 
-  always_ff @(posedge clk ) begin
-        if (! rst) begin
-            mem_out_req_o.aw_valid=0;
-            mem_out_req_o.w_valid=0;
-            mem_out_req_o.b_ready=0;
-            mem_out_req_o.ar_valid=0;
-            mem_out_req_o.r_ready=0;
-            mem_out_req_o =0;
-            gate =0;
-        end else begin
-          gate =1;
-          repeat (12) @(posedge clk);
-          bus_controller.write(address, data_bits, data, is_error);
 
-        end
-    end
+  always_ff @(posedge m_axi_if.aclk) begin
+
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.write(address, data_bits, data, is_error);
+
+  end
+
 endmodule
 
 
@@ -197,34 +206,27 @@ module top (
 
 
   renode_connection connection = new();
-  bus_connection bus_peripheral = new(connection);
-  bus_connection bus_controller = new(connection);
-  time renode_time = 0;
+  bus_connection    bus_peripheral = new(connection);
+  bus_connection    bus_controller = new(connection);
+  time              renode_time = 0;
 
-  renode_memory_pkg::axi_connection_req_t  axi_req;
-  renode_memory_pkg::axi_connection_resp_t axi_resp;
+  //renode_memory_pkg::axi_connection_req_t  axi_req;
+  //renode_memory_pkg::axi_connection_resp_t axi_resp;
 
-  //renode_memory_pkg::mem_out_req_t     mem_out_req_i;
-  //renode_memory_pkg::mem_out_resp_t    mem_out_req_o;
-
-
+  renode_axi_if axi_if (.aclk(clk));
+  //assign axi_if.areset_n = reset;
 
 
+  //logic                                    areset_n;
 
-  slave mem  (
-      .clk(clk),
-      .rst(reset),
-      .bus_peripheral(bus_peripheral),
-      .mem_in_req_i(axi_req),
-      .mem_in_req_o(axi_resp)
+  slave mem (
+      .s_axi_if(axi_if),
+      .bus_peripheral(bus_peripheral)
   );
 
   master ctr (
-      .clk(clk),
-      .rst(reset),
-      .bus_controller(bus_controller),
-      .mem_out_req_o(axi_req),
-      .mem_out_req_i(axi_resp)
+      .m_axi_if(axi_if),
+      .bus_controller(bus_controller)
   );
   // Print some stuff as an example
   initial begin
@@ -233,12 +235,24 @@ module top (
       $dumpfile("logs/vlt_dump.vcd");
       $dumpvars();
     end
+    axi_if.areset_n = 0;
     $display("[%0t] Model running...\n", $time);
   end
-  
 
+  always_ff @(posedge clk) begin
+    if (!reset) begin
+      bus_peripheral.reset_assert();
+    end
+  end
 
-  always @(bus_peripheral.write_transaction_request) $display("top::Event:bus_peripheral.write_transaction_request\n ");
+  always @(bus_peripheral.reset_assert_response) begin
+    bus_controller.reset_assert();
+  end
 
+  always @(bus_controller.reset_assert_response) begin
+    bus_controller.reset_deassert();
+  end
+
+ 
 
 endmodule
