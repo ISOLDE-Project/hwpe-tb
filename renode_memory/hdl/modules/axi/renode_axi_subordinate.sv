@@ -91,24 +91,20 @@ module renode_axi_subordinate (
     get_write_address(transaction_id, address, burst_size, burst_length, burst_type);
     valid_bits = bus.burst_size_to_valid_bits(burst_size);
     if(!is_access_valid(address, valid_bits, burst_type)) begin
-      $display("axi_subordonate::write_transaction::invalid access");
       set_write_response(transaction_id, SlaveError);
     end
     else begin
-      
       transfer_bytes = 2**burst_size;
       address_last = address + transfer_bytes * burst_length;
-      $display("axi_subordonate::write_transaction::valid access, address=0x%x, address_last=0x%x, bus.wvalid=0x%x",address,address_last,bus.wvalid);
+
       do @(posedge clk); while (!bus.wvalid);
       bus.wready <= 0;
-      $display("axi_subordonate::write_transaction::valid access, bus.wvalid=0x%x,",bus.wvalid);
+
       for (; address <= address_last; address += transfer_bytes) begin
         do @(posedge clk); while (!bus.wvalid);
         data = bus.wdata >> ((address % transfer_bytes) * 8);
         if (bus.wlast != (address == address_last)) connection.log_warning("Unexpected state of the wlast signal.");
-        $display("axi_subordonate::write_transaction::valid access, data=0x%x,",bus.wdata);
         connection.write(renode_pkg::address_t'(address), valid_bits, renode_pkg::data_t'(data) & valid_bits, is_error);
-        $display("axi_subordonate::connection.write done");
         if (is_error) connection.log_warning($sformatf("Unable to write data to Renode at address 'h%h", address));
       end
 
@@ -116,7 +112,6 @@ module renode_axi_subordinate (
       bus.wready <= 1;
       @(posedge clk);
       bus.wready <= 0;
-      $display("axi_subordonate::set_write_response");
       set_write_response(transaction_id, Okay);
     end
   endtask
@@ -153,7 +148,6 @@ module renode_axi_subordinate (
     bus.awready <= 1;
 
     do @(posedge clk); while (!bus.awvalid);
-    $display("axi_subordonate::get_write_address::got write address: 0x%x, burst_size=%d, burst_length=%d",bus.awaddr,bus.awsize, bus.awlen);
     transaction_id = bus.awid;
     address = bus.awaddr;
     burst_size = bus.awsize;
@@ -185,7 +179,6 @@ module renode_axi_subordinate (
 
     do @(posedge clk); while (!bus.bready);
     bus.bvalid <= 0;
-    $display("axi_subordonate::set_write_response done");
   endtask
 endmodule
 

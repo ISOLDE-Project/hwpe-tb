@@ -21,5 +21,4 @@ sources:
       - hdl/modules/axi/renode_axi_subordinate.sv
       - hdl/modules/renode_interrupts.sv
       - hdl/renode.sv
-
-
+      - src/renode_memory.sv

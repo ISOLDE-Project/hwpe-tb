@@ -99,58 +99,6 @@ package renode_memory_pkg;
 
 endpackage
 
-module slave (
-    //input logic                      clk,
-    //input logic                      areset_n,
-    renode_axi_if s_axi_if,
-    input renode_pkg::bus_connection bus_peripheral
-
-    //input  renode_memory_pkg::mem_in_req_t  mem_in_req_i,
-    //output renode_memory_pkg::mem_in_resp_t mem_in_req_o
-);
-  logic gate;
-  // logic i_clk;
-  // assign i_clk = clk && gate;
-
-  //renode_axi_if s_axi_if (.aclk(clk));
-  //assign s_axi_if.areset_n = areset_n;
-
-  //`__REQ_TO_AXI_IF(s_axi_if, mem_in_req_i)
-  //`__RESP_TO_AXI_IF(s_axi_if, mem_in_req_o)
-
-
-  renode_axi_subordinate s_axi_mem (
-      s_axi_if,
-      bus_peripheral
-  );
-
-  always @(bus_peripheral.write_transaction_request) begin    $display("slave::Event::write_transaction_request");write_transaction();end
-
-  task static write_transaction();
-    message_t message;
-
-    case (bus_peripheral.write_transaction_data_bits)
-      renode_pkg::Byte: message.action = renode_pkg::pushByte;
-      renode_pkg::Word: message.action = renode_pkg::pushWord;
-      renode_pkg::DoubleWord: message.action = renode_pkg::pushDoubleWord;
-      renode_pkg::QuadWord: message.action = renode_pkg::pushQuadWord;
-      default: begin
-        // connection.fatal_error($sformatf(
-        //                        "Renode doesn't support access with the 'b%b mask from a bus controller.",
-        //                        bus_peripheral.read_transaction_data_bits
-        //                        ));
-        bus_peripheral.write_respond(1);
-        return;
-      end
-    endcase
-    message.address = bus_peripheral.write_transaction_address;
-    message.data = bus_peripheral.write_transaction_data;
-
-    // connection.send_to_async_receiver(message);
-    bus_peripheral.write_respond(0);
-  endtask
-
-endmodule
 
 
 module master (
@@ -181,7 +129,8 @@ module master (
 
   address_t address = 32'h10;
   valid_bits_e data_bits = renode_pkg::Word;
-  data_t data = 32'h100;
+  data_t wdata = 32'h100;
+  data_t rdata = 32'h101;
   ;
   bit is_error;
 
@@ -189,8 +138,15 @@ module master (
   always_ff @(posedge m_axi_if.aclk) begin
 
     repeat (8) @(posedge m_axi_if.aclk);
-    bus_controller.write(address, data_bits, data, is_error);
-
+    bus_controller.write(address, data_bits, wdata, is_error);
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.read(address, data_bits, rdata, is_error);
+    if(wdata!=rdata) begin
+      string error_msg;
+      error_msg = $sformatf("Error! wdata!= rdata\n");
+      $error(error_msg);
+      $finish;
+    end
   end
 
 endmodule
@@ -219,7 +175,7 @@ module top (
 
   //logic                                    areset_n;
 
-  slave mem (
+  renode_memory mem (
       .s_axi_if(axi_if),
       .bus_peripheral(bus_peripheral)
   );
@@ -253,6 +209,6 @@ module top (
     bus_controller.reset_deassert();
   end
 
- 
+
 
 endmodule

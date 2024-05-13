@@ -40,7 +40,7 @@ module renode_axi_manager (
   end
 
   always @(connection.read_transaction_request) read_transaction();
-  always @(connection.write_transaction_request) begin    $display("renode_axi_manager::Event::write_transaction_request");write_transaction();end
+  always @(connection.write_transaction_request) write_transaction();
 
   task static read_transaction();
     bit is_error;
@@ -76,17 +76,15 @@ module renode_axi_manager (
     valid_bits = connection.write_transaction_data_bits;
 
     if(!is_access_valid(address, valid_bits)) begin
-      $display("renode_axi_manager::Event::write_transaction:: !is_access_valid\n");
       connection.write_respond(1);
     end else begin
-      $display("renode_axi_manager::Event::write_transaction:: is_access_valid\n");
       burst_size = bus.valid_bits_to_burst_size(valid_bits);
       data = data_t'(connection.write_transaction_data & valid_bits);
       strobe = bus.burst_size_to_strobe(burst_size) << (address % bus.StrobeWidth);
       data = data << ((address % bus.StrobeWidth) * 8);
-      $display("address=%d,burst=%d,strobe=0x%d\n", address,burst_size,strobe);
+
       write(0, address, burst_size, strobe, data, is_error);
-      $display("renode_axi_manager::Event::write_transaction:: is_error=%d\n",is_error);
+
       connection.write_respond(is_error);
     end
   endtask
@@ -131,7 +129,7 @@ module renode_axi_manager (
 
     // Configure transaction with only one burst.
     bus.arlen = 0;
-    bus.arburst = 0;
+    bus.arburst = renode_axi_pkg::Incrementing;
     bus.arlock = 0;
     bus.arprot = 0;
 

@@ -88,3 +88,11 @@ clean:
 	rm -f files
 	rm -fr obj_dir
 	rm -fr logs
+
+.PHONY: hard-clean
+hard-clean:
+	rm -f files
+	rm -fr obj_dir
+	rm -fr logs
+	rm -fr .bender
+	rm -fr Bender.lock
