@@ -1,3 +1,7 @@
+// Copyleft
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+
 #include "Vtop__Dpi.h"
 #include "Vtop.h"
 #include <map>

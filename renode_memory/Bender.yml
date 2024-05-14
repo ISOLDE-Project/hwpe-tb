@@ -8,6 +8,9 @@ package:
 dependencies:
   axi: {git: https://github.com/pulp-platform/axi.git, rev: ac5deb3ff086aa34b168f392c051e92603d6c0e2}
 
+export_include_dirs:
+  - include
+
 sources:
 
   - target: verilator
@@ -21,4 +24,5 @@ sources:
       - hdl/modules/axi/renode_axi_subordinate.sv
       - hdl/modules/renode_interrupts.sv
       - hdl/renode.sv
+      - src/renode_memory_pkg.sv
       - src/renode_memory.sv
