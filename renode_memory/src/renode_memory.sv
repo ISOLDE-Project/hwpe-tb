@@ -1,3 +1,7 @@
+// Copyleft
+// Solderpad Hardware License, Version 0.51, see LICENSE for details.
+// SPDX-License-Identifier: SHL-0.51
+
 module renode_memory (
     
     renode_axi_if s_axi_if,

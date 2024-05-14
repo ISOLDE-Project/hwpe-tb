@@ -2,7 +2,8 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 
-
+import renode_pkg::renode_connection, renode_pkg::bus_connection;
+import renode_pkg::message_t, renode_pkg::address_t, renode_pkg::data_t, renode_pkg::valid_bits_e;
 
 
 
@@ -11,8 +12,6 @@ module master (
     input renode_pkg::bus_connection bus_controller
 
 );
-
-
 
 
   renode_axi_manager m_axi_mem (
@@ -25,7 +24,7 @@ module master (
   valid_bits_e data_bits = renode_pkg::Word;
   data_t wdata = 32'h100;
   data_t rdata = 32'h101;
-  ;
+
   bit is_error;
 
 
@@ -46,8 +45,7 @@ module master (
 endmodule
 
 
-import renode_pkg::renode_connection, renode_pkg::bus_connection;
-import renode_pkg::message_t, renode_pkg::address_t, renode_pkg::data_t, renode_pkg::valid_bits_e;
+
 
 module top (
     input logic clk,
