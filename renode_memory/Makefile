@@ -63,7 +63,7 @@ TOP_MODULE := top
 all: files
 	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -f files  src/top-axi.sv  cc/sim_main.cc cc/renode_dpi.cc --top-module $(TOP_MODULE)
 
-files: $(SV_FILES) Bender.yml
+files: $(SV_FILES) ../Bender.yml
 	bender script verilator -t rtl -t verilator > $@
 
 run: obj_dir/V$(TOP_MODULE)

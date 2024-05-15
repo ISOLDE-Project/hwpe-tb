@@ -1,0 +1,28 @@
+# Copyright 2023 ETH Zurich and University of Bologna.
+# Licensed under the Apache License, Version 2.0, see LICENSE for details.
+# SPDX-License-Identifier: Apache-2.0
+
+package:
+  name: renode_memory
+
+dependencies:
+  axi: {git: https://github.com/pulp-platform/axi.git, rev: ac5deb3ff086aa34b168f392c051e92603d6c0e2}
+
+export_include_dirs:
+  - renode_memory/include
+
+sources:
+
+  - target: verilator
+    files:
+      # Level 0
+      - renode_memory/hdl/imports/renode_pkg.sv
+      - renode_memory/hdl/imports/renode_axi_pkg.sv
+      - renode_memory/hdl/imports/renode_pkg.sv
+      - renode_memory/hdl/modules/axi/renode_axi_if.sv
+      - renode_memory/hdl/modules/axi/renode_axi_manager.sv
+      - renode_memory/hdl/modules/axi/renode_axi_subordinate.sv
+      - renode_memory/hdl/modules/renode_interrupts.sv
+      - renode_memory/hdl/renode.sv
+      - renode_memory/src/renode_memory_pkg.sv
+      - renode_memory/src/renode_memory.sv
