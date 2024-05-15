@@ -6,6 +6,7 @@
 //======================================================================
 
 // For std::unique_ptr
+#include <cstdint>
 #include <memory>
 #include <vector>
 #include <string>
@@ -27,6 +28,7 @@
 vluint64_t main_time = 0;
 
 ELFLoader loader;
+uint32_t* elf_data;
 // Legacy function required only so linking works on Cygwin and MSVC++
 double sc_time_stamp() { return 0; }
 
@@ -36,7 +38,8 @@ int main(int argc, char** argv) {
     std::string outputFile;
     std::vector<std::string> verilatorArgs;
     std::vector<char*> verArgs;
-    verArgs.reserve(verilatorArgs.size());
+    verArgs.reserve(verilatorArgs.size() + 1);
+    verArgs.push_back(argv[0]);
 
     CLI::App app{"ELF loader"};
     app.add_option("-f,--file", binaryFile, "Specifies the RISC-V program binary file (elf)")->required();
@@ -49,6 +52,7 @@ int main(int argc, char** argv) {
     }
 
     loader.readElf(binaryFile);
+    elf_data = loader.getStorage();
     // This is a more complicated example, please also see the simpler examples/make_hello_c.
 
     // Create logs/ directory in case we have traces to put under it

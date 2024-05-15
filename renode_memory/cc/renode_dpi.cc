@@ -6,8 +6,8 @@
 
 typedef std::map<long long, long long> storage_map_type;
 
-extern ELFLoader loader;
-uint32_t* elf_data = loader.getStorage();
+// extern ELFLoader loader;
+extern uint32_t* elf_data;
 storage_map_type g_storage;
 storage_map_type::iterator g_read_it;
 
@@ -51,7 +51,7 @@ storage_map_type::iterator g_read_it;
     // DPI import at /home/uic52463/hdd2/isolde-project/hwpe-tb/renode_memory/hdl/imports/renode_pkg.sv:66:31
     extern svBit renodeDPISendToAsync(int action, long long address, long long data){
         printf("\renodeDPISendToAsync, action=%d,address=0x%llx, data=0x%llx\n", action, address,data);
-        // printf("Elf.data: %x", *(elf_data + (uint32_t)address));
+        printf("Elf.data: 0x%x\n", *(elf_data + (uint32_t)address));
         switch( action){
             default:
                 printf("\renodeDPISendToAsync, unknowned action=%d, for address=0x%llx, data=0x%llx\n", action, address,data);

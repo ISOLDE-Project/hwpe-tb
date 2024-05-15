@@ -12,6 +12,7 @@ sources:
 
   - target: verilator
     files:
+      # - cc/lib/elfFile.cpp
       # Level 0
       - hdl/imports/renode_pkg.sv
       - hdl/imports/renode_axi_pkg.sv
