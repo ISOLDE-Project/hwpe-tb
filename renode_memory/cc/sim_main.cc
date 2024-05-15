@@ -7,12 +7,15 @@
 
 // For std::unique_ptr
 #include <memory>
-
+#include <vector>
+#include <string>
 // Include common routines
 #include <verilated.h>
 
 // Include model header, generated from Verilating "top.v"
 #include "Vtop.h"
+#include "lib/CLI11.hpp"
+#include "lib/elfLoader.hpp"
 
 #include <verilated_vcd_c.h>
 
@@ -23,11 +26,29 @@
 // Current simulation time (64-bit unsigned)
 vluint64_t main_time = 0;
 
-
+ELFLoader loader;
 // Legacy function required only so linking works on Cygwin and MSVC++
 double sc_time_stamp() { return 0; }
 
 int main(int argc, char** argv) {
+
+    std::string binaryFile; // assign to default
+    std::string outputFile;
+    std::vector<std::string> verilatorArgs;
+    std::vector<char*> verArgs;
+    verArgs.reserve(verilatorArgs.size());
+
+    CLI::App app{"ELF loader"};
+    app.add_option("-f,--file", binaryFile, "Specifies the RISC-V program binary file (elf)")->required();
+    app.add_option("-o,--output", outputFile, "Specifies the output file")->required();
+    app.add_option("-v,--verilator", verilatorArgs, "Specifies verilator args");
+    CLI11_PARSE(app, argc, argv);
+    for (auto s : verilatorArgs){
+        std::cout << s << std::endl;
+        verArgs.push_back(const_cast<char*>(s.c_str()));
+    }
+
+    loader.readElf(binaryFile);
     // This is a more complicated example, please also see the simpler examples/make_hello_c.
 
     // Create logs/ directory in case we have traces to put under it
@@ -57,7 +78,7 @@ int main(int argc, char** argv) {
 
     // Pass arguments so Verilated code can see them, e.g. $value$plusargs
     // This needs to be called before you create any model
-    contextp->commandArgs(argc, argv);
+    contextp->commandArgs(argc - 4, verArgs.data());
 
     // Construct the Verilated model, from Vtop.h generated from Verilating "top.v".
     // Using unique_ptr is similar to "Vtop* top = new Vtop" then deleting at end.

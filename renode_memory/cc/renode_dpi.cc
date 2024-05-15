@@ -1,12 +1,15 @@
 #include "Vtop__Dpi.h"
 #include "Vtop.h"
+#include "lib/elfLoader.hpp"
+#include <cstdint>
 #include <map>
 
-typedef std::map<long long, long long> storage_type;
+typedef std::map<long long, long long> storage_map_type;
 
-
-storage_type g_storage;
-storage_type::iterator g_read_it;
+extern ELFLoader loader;
+uint32_t* elf_data = loader.getStorage();
+storage_map_type g_storage;
+storage_map_type::iterator g_read_it;
 
 
     // DPI import at /home/uic52463/hdd2/isolde-project/hwpe-tb/renode_memory/hdl/imports/renode_pkg.sv:39:32
@@ -48,13 +51,14 @@ storage_type::iterator g_read_it;
     // DPI import at /home/uic52463/hdd2/isolde-project/hwpe-tb/renode_memory/hdl/imports/renode_pkg.sv:66:31
     extern svBit renodeDPISendToAsync(int action, long long address, long long data){
         printf("\renodeDPISendToAsync, action=%d,address=0x%llx, data=0x%llx\n", action, address,data);
+        // printf("Elf.data: %x", *(elf_data + (uint32_t)address));
         switch( action){
             default:
                 printf("\renodeDPISendToAsync, unknowned action=%d, for address=0x%llx, data=0x%llx\n", action, address,data);
                 break;
             case 13: //write
                 {
-                    storage_type::iterator it = g_storage.find(address);
+                    storage_map_type::iterator it = g_storage.find(address);
                     if(it != g_storage.end()){
                         //
                         g_storage[address]=data;
