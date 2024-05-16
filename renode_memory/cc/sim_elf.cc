@@ -27,10 +27,35 @@
 // Current simulation time (64-bit unsigned)
 vluint64_t main_time = 0;
 
+uint32_t* elf_data;
+
+unsigned MAX_IDX;
 // Legacy function required only so linking works on Cygwin and MSVC++
 double sc_time_stamp() { return 0; }
 
 int main(int argc, char** argv) {
+
+    std::string binaryFile; // assign to default
+    std::string outputFile;
+    std::vector<std::string> verilatorArgs;
+    std::vector<char*> verArgs;
+    verArgs.reserve(verilatorArgs.size() + 1);
+    verArgs.push_back(argv[0]);
+
+    CLI::App app{"ELF loader"};
+    app.add_option("-f,--file", binaryFile, "Specifies the RISC-V program binary file (elf)")->required();
+    app.add_option("-o,--output", outputFile, "Specifies the output file")->required();
+    app.add_option("-v,--verilator", verilatorArgs, "Specifies verilator args");
+    CLI11_PARSE(app, argc, argv);
+    for (auto s : verilatorArgs){
+        std::cout << s << std::endl;
+        verArgs.push_back(const_cast<char*>(s.c_str()));
+    }
+
+    ELFLoader loader;
+    loader.readElf(binaryFile);
+    elf_data = loader.getStorage();
+    MAX_IDX = loader.max_idx();
     // This is a more complicated example, please also see the simpler examples/make_hello_c.
 
     // Create logs/ directory in case we have traces to put under it
@@ -127,6 +152,22 @@ int main(int argc, char** argv) {
 
     // Final simulation summary
     contextp->statsPrintSummary();
+
+    // std::string name("code_image");
+    std::string name;
+    int index = outputFile.rfind(".");
+    if(index != std::string::npos){
+        name = outputFile.substr(0, index);
+    } else {
+        name = outputFile;
+        outputFile += std::string(".py");
+    }
+    FILE* pyFile = loader.openOrDefault(outputFile, "wb", NULL);
+    fprintf(pyFile,"import numpy as np\n\n"); 
+    
+
+    py_pretty_print<uint32_t>(pyFile,name, loader);
+    fprintf(pyFile,"\n\nstart=%u\n\n", loader.getStartAddress());
 
     // Return good completion status
     // Don't use exit() or destructor won't get called
