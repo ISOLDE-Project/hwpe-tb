@@ -1,9 +1,9 @@
 include Makefile
 
-LIBDIR += cc/lib
+LIBDIR += cc_elf/lib
 
 all: files
-	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -CFLAGS -I$(LIBDIR) -LDFLAGS -I$(LIBDIR) -f files src/top.sv  cc/sim_elf.cc cc/renode_dpi.cc cc/lib/elfFile.cpp --top-module $(TOP_MODULE)
+	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -CFLAGS -I$(LIBDIR) -LDFLAGS -I$(LIBDIR) -f files src/top.sv  cc_elf/sim_elf.cc cc_elf/renode_elf_dpi.cc cc_elf/lib/elfFile.cpp --top-module $(TOP_MODULE)
 
 .PHONY: clean
 clean:

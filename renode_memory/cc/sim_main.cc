@@ -15,8 +15,6 @@
 
 // Include model header, generated from Verilating "top.v"
 #include "Vtop.h"
-#include "lib/CLI11.hpp"
-#include "lib/elfLoader.hpp"
 
 #include <verilated_vcd_c.h>
 
@@ -60,7 +58,7 @@ int main(int argc, char** argv) {
 
     // Pass arguments so Verilated code can see them, e.g. $value$plusargs
     // This needs to be called before you create any model
-    contextp->commandArgs(argc - 4, verArgs.data());
+    contextp->commandArgs(argc, argv);
 
     // Construct the Verilated model, from Vtop.h generated from Verilating "top.v".
     // Using unique_ptr is similar to "Vtop* top = new Vtop" then deleting at end.

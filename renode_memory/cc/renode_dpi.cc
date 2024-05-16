@@ -1,18 +1,12 @@
 #include "Vtop__Dpi.h"
 #include "Vtop.h"
-#include "lib/elfLoader.hpp"
-#include <cstdint>
 #include <map>
 
-static constexpr uint32_t ROM_RN_ORIGIN = 0;//0x00001000;
-extern uint32_t* elf_data;
-extern unsigned MAX_IDX;
-unsigned read_idx;
+typedef std::map<long long, long long> storage_type;
 
-    static inline uint32_t addr_to_index(const uint32_t addr){
-        uint32_t tmp_sh_addr = addr - ROM_RN_ORIGIN;
-        return static_cast<uint32_t>(tmp_sh_addr>>2);
-    }
+
+storage_type g_storage;
+storage_type::iterator g_read_it;
 
 
     // DPI import at /home/uic52463/hdd2/isolde-project/hwpe-tb/renode_memory/hdl/imports/renode_pkg.sv:39:32
@@ -35,12 +29,13 @@ unsigned read_idx;
     // DPI import at /home/uic52463/hdd2/isolde-project/hwpe-tb/renode_memory/hdl/imports/renode_pkg.sv:54:31
     extern svBit renodeDPIReceive(int* action, long long* address, long long* data){
         printf("\renodeDPIReceive\n");
-        if(read_idx < MAX_IDX){
-            // printf("read will be performed from initialised address=0x%x\n", *address);
-            *data = *(elf_data + read_idx);            
+        if(g_read_it != g_storage.end()){
+            //printf("read will be performed from initialised address=0x%x", *address)
+            *address = g_read_it->first;
+            *data    = g_read_it->second;            
         } else {
-            printf("read is performed from unknown address=0x%llx\n", *address);
-            *data = static_cast<uint32_t>(0);
+            printf("read is performed from un-initialised address=0x%llx", *address);
+            *data = static_cast<long long>( 0);
         }
         return 1;
 
@@ -59,26 +54,27 @@ unsigned read_idx;
                 break;
             case 13: //write
                 {
-                    unsigned idx = addr_to_index((uint32_t)address);
-                    if(idx < MAX_IDX){
-                        uint32_t *tmp_addr = elf_data + idx;
-                        *tmp_addr = (uint32_t)data;
+                    storage_type::iterator it = g_storage.find(address);
+                    if(it != g_storage.end()){
+                        //
+                        g_storage[address]=data;
                         printf("updating address=0x%llx with data=0x%llx\n", address, data);
                     } else {
-
+                        g_storage.insert(std::pair<long long, long long>(address,data));
                         printf("writting at address=0x%llx  data=0x%llx\n", address, data);
                     }
+                    
                 }
                 break;
             case 14: //read
                 {   
-
-                    read_idx = addr_to_index((uint32_t)address);
-                    if(read_idx < MAX_IDX){
+                    g_read_it = g_storage.find(address);
+                    if(g_read_it != g_storage.end()){
                         printf("read will be performed from initialised address=0x%llx\n", address);
                     } else {
-                        printf("Error: read would be performed from un-initialised address=0x%llx which is out of memory\n", address);
+                        printf("read will be performed from un-initialised address=0x%llx\n", address);
                     }
+                        
                 }
                 break;
             };
