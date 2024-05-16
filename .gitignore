@@ -15,3 +15,8 @@ hw/ipstools/
 *.dat
 obj_dir/
 files
+vivado/
+vivado*
+.Xil/
+Bender.lock
+*.tar.gz

@@ -1,14 +1,24 @@
 # ISOLDE
 ## Prepare environment
 
-A RISC-V compiler is needed. E.g. :
+### Prerequisite
 ```
-wget https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2024.04.12/riscv32-elf-ubuntu-20.04-gcc-nightly-2024.04.12-nightly.tar.gz
+sudo apt-get install autoconf
+sudo apt-get install g++-10
+sudo apt-get install help2man
+sudo apt-get install libswitch-perl
 ```
-Unpack the archive and update the eth.sh file:  
+#### Optional
 ```
-export PULP_RISCV_GCC_TOOLCHAIN=<path_to_gnu_toolchain>
+sudo apt-get install gtkwave
 ```
+A RISC-V compiler is needed. 
+Updated the toolchain/riscv32-elf-gcc with the download url of your choice, e.g. https://github.com/riscv-collab/riscv-gnu-toolchain/releases/download/2024.04.12/riscv32-elf-ubuntu-22.04-gcc-nightly-2024.04.12-nightly.tar.gz
+```
+make riscv32-elf-gcc
+```
+
+
 Build locally the verilator:  
 ```
 git submodule update --init toolchain/verilator/

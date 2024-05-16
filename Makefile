@@ -146,3 +146,9 @@ cores:
 	@num_cores=$$(nproc); \
 	num_cores=$$((num_cores / 2)); \
 	echo "Number of cores available on this machine (divided by 2): $$num_cores"
+
+riscv32-elf-gcc: toolchain/riscv32-elf-gcc
+	cd toolchain && \
+	wget  `cat $(CURDIR)/$<` -O riscv.tar.gz && \
+	tar -xzvf riscv.tar.gz -C  $(CURDIR)/install/ riscv
+	
