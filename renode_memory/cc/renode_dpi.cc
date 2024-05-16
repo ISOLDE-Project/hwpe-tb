@@ -5,7 +5,7 @@
 #include <map>
 
 typedef std::map<long long, long long> storage_map_type;
-static constexpr uint32_t ROM_RN_ORIGIN = 0//0x00001000;
+static constexpr uint32_t ROM_RN_ORIGIN = 0;//0x00001000;
 // extern ELFLoader loader;
 extern uint32_t* elf_data;
 unsigned read_idx;
