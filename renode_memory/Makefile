@@ -59,11 +59,8 @@ HDL_DIR := hdl
 SV_FILES := $(wildcard $(SRC_DIR)/*.sv)
 TOP_MODULE := top
 
-# CPPFLAGS += -Icc/lib
-LIBDIR += -Icc/lib
-# LIB = $(wildcard $(LIBDIR)/%.h)
 all: files
-	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -CFLAGS -Icc/lib -LDFLAGS -Icc/lib -f files src/top.sv  cc/sim_main.cc cc/renode_dpi.cc cc/lib/elfFile.cpp --top-module $(TOP_MODULE)
+	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -f files src/top.sv  cc/sim_main.cc cc/renode_dpi.cc --top-module $(TOP_MODULE)
 
 files: $(SV_FILES) Bender.yml
 	bender script verilator -t rtl -t verilator > $@
