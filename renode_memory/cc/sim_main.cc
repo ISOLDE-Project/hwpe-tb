@@ -18,7 +18,7 @@
 
 #define CYCLES    1000 
 #define CLK_DELAY  200
-#define TIMEOUT   1*CYCLES
+#define TIMEOUT   100*CYCLES
 
 // Current simulation time (64-bit unsigned)
 vluint64_t main_time = 0;
@@ -70,8 +70,8 @@ int main(int argc, char** argv) {
     tfp->open("logs/sim.vcd");
 
     bool endOfTestSequence=false;
-    top->clk=0;
-    top->reset=0;
+    top->clk_i=0;
+    top->rst_ni=0;
     contextp->time(0);
     int hold_reset=3;
     // Simulate until $finish
@@ -91,12 +91,12 @@ int main(int argc, char** argv) {
 
 
         if (contextp->time() % 5 == 0){
-            top->clk=!top->clk;
+            top->clk_i=!top->clk_i;
             if(hold_reset) hold_reset--;
         }    
 
         if (!hold_reset) {                
-                top->reset = 1;  // Deassert reset
+                top->rst_ni = 1;  // Deassert rst_ni
                 
             }
        

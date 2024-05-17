@@ -70,7 +70,7 @@ run: obj_dir/V$(TOP_MODULE)
 	obj_dir/V$(TOP_MODULE)
 
 obj_dir/V$(TOP_MODULE): obj_dir/V$(TOP_MODULE).mk
-	$(MAKE) -C obj_dir/ -f V$(TOP_MODULE).mk -j6
+	$(MAKE) -C obj_dir/ -f V$(TOP_MODULE).mk -j$(num_cores_half)
 
 .PHONY: obj_dir/V$(TOP_MODULE).mk
 

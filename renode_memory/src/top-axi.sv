@@ -37,18 +37,45 @@ module master (
   bit is_error;
 
 
+
   always_ff @(posedge m_axi_if.aclk) begin
 
+    //negative test
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.read(address, data_bits, rdata, is_error);
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.write(address, data_bits, wdata, is_error);
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.read(address, data_bits, rdata, is_error);
     if (wdata != rdata) begin
       string error_msg;
-      error_msg = $sformatf("Error! wdata!= rdata\n");
+      error_msg = $sformatf("Test for Word data has FAILED! wdata!= rdata\n");
       $error(error_msg);
-      $finish;
+      $finish(1);
     end
+    // QuadWord test 
+    address = 32'h1000;
+    data_bits = renode_pkg::QuadWord;
+    wdata = 32'h200;
+    rdata = 32'h201;
+    
+    //negative test
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.read(address, data_bits, rdata, is_error);
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.write(address, data_bits, wdata, is_error);
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.read(address, data_bits, rdata, is_error);
+    if (wdata != rdata) begin
+      string error_msg;
+      error_msg = $sformatf("Test for QuadWord data has FAILED! wdata!= rdata\n");
+      $error(error_msg);
+      $finish(1);
+    end else 
+      begin
+        $display("\nTest OK. Ending simulation with code 0.");
+        $finish(0);
+      end 
   end
 
 endmodule
@@ -56,16 +83,16 @@ endmodule
 
 
 module top (
-    input logic clk,
-    input logic reset
+    input logic clk_i,
+    input logic rst_ni
 );
 
 
   renode_connection                        connection = new();
   bus_connection                           bus_peripheral = new(connection);
   bus_connection                           bus_controller = new(connection);
-  renode_axi_if axi_if (.aclk(clk));
-  assign axi_if.areset_n = reset;
+  renode_axi_if axi_if (.aclk(clk_i));
+  assign axi_if.areset_n = rst_ni;
   renode_memory_pkg::axi_connection_req_t  axi_req;
   renode_memory_pkg::axi_connection_resp_t axi_resp;
   //
@@ -80,8 +107,8 @@ module top (
   );
 
   master ctr (
-      .clk(clk),
-      .areset_n(reset),
+      .clk(clk_i),
+      .areset_n(rst_ni),
       .bus_controller(bus_controller),
       .mem_out_req_o(axi_req),
       .mem_out_req_i(axi_resp)
@@ -97,8 +124,8 @@ module top (
     $display("[%0t] Model running...\n", $time);
   end
 
-   always_ff @(posedge clk) begin
-    if (!reset) begin
+   always_ff @(posedge clk_i) begin
+    if (!rst_ni) begin
       bus_peripheral.reset_assert();
     end
   end
