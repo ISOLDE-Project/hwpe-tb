@@ -146,8 +146,8 @@ module renode_axi_manager (
 
     do @(posedge clk); while (!bus.rvalid);
     data = bus.rdata;
-    transaction_id = bus.bid;
-    response = response_e'(bus.bresp);
+    transaction_id = bus.rid;
+    response = response_e'(bus.rresp);
     bus.rready <= 0;
   endtask
 

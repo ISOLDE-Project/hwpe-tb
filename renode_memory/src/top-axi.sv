@@ -20,7 +20,7 @@ module master (
   renode_axi_if m_axi_if (.aclk(clk));
   assign m_axi_if.areset_n = areset_n;
 
-  `__RENODE_TO_REQ( mem_out_req_o,m_axi_if)
+  `__RENODE_TO_REQ(mem_out_req_o, m_axi_if)
   `__RESP_TO_RENODE(m_axi_if, mem_out_req_i)
 
 
@@ -37,16 +37,30 @@ module master (
   bit is_error;
 
 
+  task stopAtError(input bit is_error, input string file, input int line);
+    begin
+      if (is_error) begin
+        $display("\n Error at  %s:%0d\n", file, line);
+        $finish(1);
+      end
+    end
+  endtask
 
   always_ff @(posedge m_axi_if.aclk) begin
 
     //negative test
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.read(address, data_bits, rdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.write(address, data_bits, wdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.read(address, data_bits, rdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+
     if (wdata != rdata) begin
       string error_msg;
       error_msg = $sformatf("Test for Word data has FAILED! wdata!= rdata\n");
@@ -58,24 +72,29 @@ module master (
     data_bits = renode_pkg::QuadWord;
     wdata = 32'h200;
     rdata = 32'h201;
-    
+
     //negative test
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.read(address, data_bits, rdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.write(address, data_bits, wdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.read(address, data_bits, rdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+    
     if (wdata != rdata) begin
       string error_msg;
       error_msg = $sformatf("Test for QuadWord data has FAILED! wdata!= rdata\n");
       $error(error_msg);
       $finish(1);
-    end else 
-      begin
-        $display("\nTest OK. Ending simulation with code 0.");
-        $finish(0);
-      end 
+    end else begin
+      $display("\nTest OK. Ending simulation with code 0.");
+      $finish(0);
+    end
   end
 
 endmodule
@@ -88,15 +107,15 @@ module top (
 );
 
 
-  renode_connection                        connection = new();
-  bus_connection                           bus_peripheral = new(connection);
-  bus_connection                           bus_controller = new(connection);
+  renode_connection connection = new();
+  bus_connection    bus_peripheral = new(connection);
+  bus_connection    bus_controller = new(connection);
   renode_axi_if axi_if (.aclk(clk_i));
   assign axi_if.areset_n = rst_ni;
   renode_memory_pkg::axi_connection_req_t  axi_req;
   renode_memory_pkg::axi_connection_resp_t axi_resp;
   //
- 
+
 
   `__RENODE_TO_RESP(axi_resp, axi_if)
   `__REQ_TO_RENODE(axi_if, axi_req)
@@ -124,7 +143,7 @@ module top (
     $display("[%0t] Model running...\n", $time);
   end
 
-   always_ff @(posedge clk_i) begin
+  always_ff @(posedge clk_i) begin
     if (!rst_ni) begin
       bus_peripheral.reset_assert();
     end

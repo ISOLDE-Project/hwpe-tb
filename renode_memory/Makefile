@@ -1,4 +1,5 @@
 ROOT_DIR := $(shell git rev-parse --show-toplevel)
+RENODE_MEMORY_ROOT_DIR := $(ROOT_DIR)
 
 CXX := g++-10
 
@@ -56,12 +57,14 @@ VERILATOR_FLAGS += -Wno-REDEFMACRO
 #
 VERILATOR_FLAGS += -Wno-ASSIGNIN
 
-HDL_DIR := hdl
-SV_FILES := $(wildcard $(SRC_DIR)/*.sv)
+RENODE_MEMORY_DIR := $(RENODE_MEMORY_ROOT_DIR)/renode_memory
+
 TOP_MODULE := top
+TOP_MODULE_SV ?= src/top-axi-memread.sv
+RENODE_MEMORY_FILES := $(RENODE_MEMORY_DIR)/cc/sim_main.cc $(RENODE_MEMORY_DIR)/cc/renode_dpi.cc
 
 all: files
-	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -f files  src/top-axi.sv  cc/sim_main.cc cc/renode_dpi.cc --top-module $(TOP_MODULE)
+	$(VERILATOR) $(VERILATOR_FLAGS) -I$(RENODE_MEMORY_DIR)/hdl/imports -f files $(RENODE_MEMORY_FILES) $(TOP_MODULE_SV)  --top-module $(TOP_MODULE)
 
 files: $(SV_FILES) ../Bender.yml
 	bender script verilator -t rtl -t verilator > $@
