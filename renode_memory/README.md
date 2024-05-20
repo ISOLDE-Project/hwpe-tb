@@ -11,6 +11,7 @@ make sure that verilator is installed locally, see [../README.md](../README.md)
 ```
 
 ### Errors
+A possible sollution is to start fresh again:  
 ```
 make clean
 make run
@@ -20,4 +21,16 @@ make run
 ```
 make hard-clean
 make run
+```
+
+### Run memory read test
+```
+make clean
+make run TOP_MODULE_SV=src/top-axi-memread.sv
+```
+Expected output:
+```
+Test completed
+
+- src/top-axi-memread.sv:128: Verilog $finish
 ```

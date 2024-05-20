@@ -20,3 +20,4 @@ vivado*
 .Xil/
 Bender.lock
 *.tar.gz
+dump.py

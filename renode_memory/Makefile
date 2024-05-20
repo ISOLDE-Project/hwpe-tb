@@ -60,7 +60,7 @@ VERILATOR_FLAGS += -Wno-ASSIGNIN
 RENODE_MEMORY_DIR := $(RENODE_MEMORY_ROOT_DIR)/renode_memory
 
 TOP_MODULE := top
-TOP_MODULE_SV ?= src/top-axi-memread.sv
+TOP_MODULE_SV ?= src/top-axi.sv
 RENODE_MEMORY_FILES := $(RENODE_MEMORY_DIR)/cc/sim_main.cc $(RENODE_MEMORY_DIR)/cc/renode_dpi.cc
 
 all: files
