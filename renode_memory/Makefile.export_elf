@@ -1,0 +1,22 @@
+include Makefile
+
+LIBDIR += cc_elf/lib
+
+all: files
+	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -CFLAGS -I$(LIBDIR) -LDFLAGS -I$(LIBDIR) -f files src/top.sv  cc_elf/sim_elf.cc cc_elf/renode_elf_dpi.cc cc_elf/lib/elfFile.cpp --top-module $(TOP_MODULE)
+
+.PHONY: clean
+clean:
+	rm -f files
+	rm -fr obj_dir
+	rm -fr logs
+	rm -f output.py
+
+.PHONY: hard-clean
+hard-clean:
+	rm -f files
+	rm -fr obj_dir
+	rm -fr logs
+	rm -fr .bender
+	rm -fr Bender.lock
+	rm -f output.py
