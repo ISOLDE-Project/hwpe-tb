@@ -29,7 +29,7 @@ module master (
       bus_controller
   );
 
-  address_t address = 32'h10;
+  address_t address = 32'h1018;
   valid_bits_e data_bits = renode_pkg::Word;
   data_t wdata = 32'h100;
   data_t rdata = 32'h101;
@@ -53,6 +53,12 @@ module master (
     bus_controller.read(address, data_bits, rdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
 
+    address <= address+2;
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.read(address, data_bits, rdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+
+    address <= 32'h10c0;
     repeat (8) @(posedge m_axi_if.aclk);
     bus_controller.write(address, data_bits, wdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);

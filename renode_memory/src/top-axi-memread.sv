@@ -30,8 +30,8 @@ module master (
   );
 
   address_t address = 32'h10;
-  address_t address_begin = 32'h10;
-  address_t address_end = 32'h20;
+  address_t address_begin = 32'h1000;
+  address_t address_end = 32'h11c0;
   valid_bits_e data_bits = renode_pkg::DoubleWord;
   data_t rdata = 32'h101;
   bit is_error;

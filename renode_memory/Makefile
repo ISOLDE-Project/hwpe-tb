@@ -61,16 +61,21 @@ RENODE_MEMORY_DIR := $(RENODE_MEMORY_ROOT_DIR)/renode_memory
 
 TOP_MODULE := top
 TOP_MODULE_SV ?= src/top-axi.sv
-RENODE_MEMORY_FILES := $(RENODE_MEMORY_DIR)/cc/sim_main.cc $(RENODE_MEMORY_DIR)/cc/renode_dpi.cc
+RENODE_MEMORY_FILES := $(RENODE_MEMORY_DIR)/cc/sim_main.cc $(RENODE_MEMORY_DIR)/cc/MemorySim.cc $(RENODE_MEMORY_DIR)/cc/renode_dpi.cc $(RENODE_MEMORY_DIR)/cc_elf/lib/elfFile.cpp
+ELF_FILE  := $(CURDIR)/../build/sw/tb_hwpe.c/verif
+
+INC_ELF_DIR := cc_elf/lib
+ELF_FILE :=  $(RENODE_MEMORY_DIR)/apps/test/aida/test.riscv32
+
 
 all: files
-	$(VERILATOR) $(VERILATOR_FLAGS) -I$(RENODE_MEMORY_DIR)/hdl/imports -f files $(RENODE_MEMORY_FILES) $(TOP_MODULE_SV)  --top-module $(TOP_MODULE)
+	$(VERILATOR) $(VERILATOR_FLAGS) -I$(RENODE_MEMORY_DIR)/hdl/imports   -CFLAGS -I$(RENODE_MEMORY_DIR)/$(INC_ELF_DIR) -f files $(RENODE_MEMORY_FILES) $(TOP_MODULE_SV)  --top-module $(TOP_MODULE)
 
 files: $(SV_FILES) ../Bender.yml
 	bender script verilator -t rtl -t verilator > $@
 
 run: obj_dir/V$(TOP_MODULE)
-	obj_dir/V$(TOP_MODULE)
+	obj_dir/V$(TOP_MODULE) -f $(ELF_FILE) 
 
 obj_dir/V$(TOP_MODULE): obj_dir/V$(TOP_MODULE).mk
 	$(MAKE) -C obj_dir/ -f V$(TOP_MODULE).mk -j$(num_cores_half)

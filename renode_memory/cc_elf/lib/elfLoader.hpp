@@ -19,12 +19,15 @@ struct ELFLoader {
 
   unsigned IDX_MAX = 0;
   uint32_t startAddress;
-  typedef std::vector<uint32_t> storage_type;
+  typedef uint32_t addr_type;
+  typedef uint32_t data_type;
+  typedef uint32_t index_type;
+  typedef std::vector<data_type> storage_type;
   storage_type storage;
 
   ELFLoader() {  }
   unsigned max_idx(){ return IDX_MAX;}
-  uint32_t* getStorage(){return storage.data();}
+  data_type* getStorage(){return storage.data();}
 
   FILE* fopenCheck(const char* fname, const char* mode)
   {
@@ -42,9 +45,12 @@ struct ELFLoader {
     return (fname.empty()) ? def : fopenCheck(fname.c_str(), mode);
   }
 
-  uint32_t getStartAddress(){ return startAddress;}
+  data_type getStartAddress(){ return startAddress;}
  
-
+   static inline index_type addr_to_index(const addr_type addr_){
+    addr_type addr = addr_-ROM_ORIGIN;
+    return static_cast<index_type>(addr>>2);
+  }
   /**
   ** expands elf content value from 8 bit to 32 bit
   * while keeping the address in 32 bit range
