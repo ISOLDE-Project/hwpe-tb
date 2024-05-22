@@ -2,15 +2,21 @@ include Makefile
 
 LIBDIR += cc_elf/lib
 
+INPUT_ELF = ../../resnet18.riscv32
+OUTPUT = output.npy
+
 all: files
-	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -CFLAGS -I$(LIBDIR) -LDFLAGS -I$(LIBDIR) -f files src/top.sv  cc_elf/sim_elf.cc cc_elf/renode_elf_dpi.cc cc_elf/lib/elfFile.cpp --top-module $(TOP_MODULE)
+	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -CFLAGS -I$(LIBDIR) -LDFLAGS -lz  -f files src/top.sv  cc_elf/sim_elf.cc cc_elf/renode_elf_dpi.cc cc_elf/lib/elfFile.cpp cc_elf/lib/cnpy.cpp --top-module $(TOP_MODULE)
+
+run: obj_dir/V$(TOP_MODULE)
+	obj_dir/V$(TOP_MODULE) -f $(INPUT_ELF) -o $(OUTPUT)
 
 .PHONY: clean
 clean:
 	rm -f files
 	rm -fr obj_dir
 	rm -fr logs
-	rm -f output.py
+	rm -f $(OUTPUT)
 
 .PHONY: hard-clean
 hard-clean:
@@ -19,4 +25,4 @@ hard-clean:
 	rm -fr logs
 	rm -fr .bender
 	rm -fr Bender.lock
-	rm -f output.py
+	rm -f $(OUTPUT)

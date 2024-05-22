@@ -17,6 +17,7 @@
 #include "Vtop.h"
 #include "lib/CLI11.hpp"
 #include "lib/elfLoader.hpp"
+#include "lib/cnpy.h"
 
 #include <verilated_vcd_c.h>
 
@@ -153,21 +154,16 @@ int main(int argc, char** argv) {
     // Final simulation summary
     contextp->statsPrintSummary();
 
-    // std::string name("code_image");
     std::string name;
     int index = outputFile.rfind(".");
     if(index != std::string::npos){
         name = outputFile.substr(0, index);
     } else {
         name = outputFile;
-        outputFile += std::string(".py");
+        outputFile += std::string(".npy");
     }
-    FILE* pyFile = loader.openOrDefault(outputFile, "wb", NULL);
-    fprintf(pyFile,"import numpy as np\n\n"); 
-    
 
-    py_pretty_print<uint32_t>(pyFile,name, loader);
-    fprintf(pyFile,"\n\nstart=%u\n\n", loader.getStartAddress());
+    cnpy::npy_save(outputFile,&loader.storage[0], {loader.storage.size()}, "w");
 
     // Return good completion status
     // Don't use exit() or destructor won't get called
