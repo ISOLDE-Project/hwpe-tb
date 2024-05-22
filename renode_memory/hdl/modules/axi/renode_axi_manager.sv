@@ -39,8 +39,8 @@ module renode_axi_manager (
     connection.reset_deassert_respond();
   end
 
-  always @(connection.read_transaction_request) read_transaction();
-  always @(connection.write_transaction_request) write_transaction();
+  always @(connection.read_transaction_request)   if(bus.areset_n) begin read_transaction();end
+  always @(connection.write_transaction_request)  if(bus.areset_n) begin write_transaction();end
 
   task static read_transaction();
     bit is_error;
@@ -58,8 +58,11 @@ module renode_axi_manager (
       burst_size = bus.valid_bits_to_burst_size(valid_bits);
 
       read(0, address, burst_size, data, is_error);
-
-      data = data >> ((address % bus.StrobeWidth) * 8);
+`ifdef RENODE_DEBUG      
+      $display(" -M-     renode_axi_manager.read_transaction() 'h%h@h%h", data, address);
+      //data = data >> ((address % bus.StrobeWidth) * 8);
+      //$display(" -M-     renode_axi_manager::connection.read_respond( data='h%h, is_error=%b", renode_pkg::data_t'(data) & valid_bits, is_error);
+`endif      
       connection.read_respond(renode_pkg::data_t'(data) & valid_bits, is_error);
     end
   endtask
@@ -81,7 +84,7 @@ module renode_axi_manager (
       burst_size = bus.valid_bits_to_burst_size(valid_bits);
       data = data_t'(connection.write_transaction_data & valid_bits);
       strobe = bus.burst_size_to_strobe(burst_size) << (address % bus.StrobeWidth);
-      data = data << ((address % bus.StrobeWidth) * 8);
+      //data = data << ((address % bus.StrobeWidth) * 8);
 
       write(0, address, burst_size, strobe, data, is_error);
 

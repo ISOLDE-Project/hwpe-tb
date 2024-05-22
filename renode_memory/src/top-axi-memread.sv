@@ -8,6 +8,8 @@
 
 // verilog_lint: waive-start package-filename
 import renode_memory_pkg::*;
+typedef int address32_t;
+typedef int data32_t;
 
 module master (
     input  logic                             clk,
@@ -29,14 +31,19 @@ module master (
       bus_controller
   );
 
-  address_t address = 32'h10;
+
   address_t address_begin = 32'h1000;
-  address_t address_end = 32'h11c0;
+  address_t address_end = 32'h11C0;
+
+  address_t address = address_begin;
   valid_bits_e data_bits = renode_pkg::DoubleWord;
   data_t rdata = 32'h101;
   bit is_error;
   bit test_done;
 
+  //32 bit
+  address32_t address32;
+  data32_t rdata32;
   // File descriptor
   int fd;
   //offset for incrementing the memory
@@ -44,13 +51,17 @@ module master (
 
   string format;
 
-  task py_pretty_print(input integer f, input address_t addr, input address_t addr_end,
-                       data_t rdata);
+  task static py_pretty_print(input integer f, input address_t addr, input address_t addr_end,
+                              data_t rdata);
+    int rdata32;
     begin
+
+     rdata32 = int'(rdata[31:0]);
+
       if (addr == addr_end) begin
-        $fwrite(f, "%d", rdata);
+        $fwrite(f, "%d", int'(rdata32));
       end else begin
-        $fwrite(f, "%d,", rdata);
+        $fwrite(f, "%d,", rdata32);
       end
     end
   endtask
@@ -67,7 +78,7 @@ module master (
 
   task open_file(output int fd);
     begin
-      fd = $fopen("dump.py", "w");
+      fd = $fopen("mem_dump.py", "w");
       $fwrite(fd, "import numpy as np\n\n");
       $fwrite(fd, "%s = np.array([\n", "mem");
     end
@@ -103,19 +114,18 @@ module master (
   end
 
   always_ff @(posedge m_axi_if.aclk) begin
-    repeat (8) @(posedge m_axi_if.aclk);
+   
+    do @(posedge m_axi_if.aclk); while (!m_axi_if.areset_n);
 
     bus_controller.read(address, data_bits, rdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
     py_pretty_print(fd, address, address_end, rdata);
-    //$display("++ Address: %0h, Word-Data: %0h", address, rdata);
-
-    repeat (8) @(posedge m_axi_if.aclk);
-    getOffset(data_bits, offset);
-    address <= address + offset;
 
     if (address == address_end) begin
       test_done <= 1;
+    end else begin
+      getOffset(data_bits, offset);
+      address = address + offset;
     end
 
   end

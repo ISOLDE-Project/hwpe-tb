@@ -15,11 +15,15 @@ module renode_memory (
   );
 
   always @(bus_peripheral.read_transaction_request) begin
-    $display("slave::Event::read_transaction_request");
+`ifdef RENODE_DEBUG    
+    $display("renode_memory.@read_transaction_request");
+`endif    
     read_transaction();
   end
   always @(bus_peripheral.write_transaction_request) begin
-    $display("slave::Event::write_transaction_request");
+`ifdef RENODE_DEBUG    
+    $display("renode_memory.@:write_transaction_request");
+`endif
     write_transaction();
   end
 
@@ -27,7 +31,9 @@ module renode_memory (
 
   task static read_transaction();
     message_t message;
-
+`ifdef RENODE_DEBUG    
+$display("renode_memory.read_transaction()");
+`endif
     case (bus_peripheral.read_transaction_data_bits)
       renode_pkg::Byte: message.action = renode_pkg::getByte;
       renode_pkg::Word: message.action = renode_pkg::getWord;

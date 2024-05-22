@@ -73,7 +73,29 @@ module master (
       $error(error_msg);
       $finish(1);
     end
+    //DoubleWord test
+     $display("\n[%0t] DoubleWord test...\n", $time);
+    address = 32'h1000;
+    data_bits = renode_pkg::DoubleWord;
+    wdata = 32'h200;
+    rdata = 32'h201;
+
+    //negative test
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.read(address, data_bits, rdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+
+    address <= 32'h10c0;
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.write(address, data_bits, wdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+
+    repeat (8) @(posedge m_axi_if.aclk);
+    bus_controller.read(address, data_bits, rdata, is_error);
+    stopAtError(is_error, `__FILE__, `__LINE__);
+    
     // QuadWord test 
+     $display("\n[%0t] QuadWord test...\n", $time);
     address = 32'h1000;
     data_bits = renode_pkg::QuadWord;
     wdata = 32'h200;

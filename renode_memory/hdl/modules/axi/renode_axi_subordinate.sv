@@ -38,8 +38,8 @@ module renode_axi_subordinate (
     connection.reset_deassert_respond();
   end
 
-  always @(clk )  if(bus.areset_n) begin $display("renode_axi_subordinate::read_transaction");read_transaction();end
-  always @(clk )  if(bus.areset_n) begin $display("renode_axi_subordinate::write_transaction");write_transaction();end
+  always @(clk )  if(bus.areset_n) begin read_transaction();end
+  always @(clk )  if(bus.areset_n) begin write_transaction();end
 
   task static read_transaction();
     transaction_id_t transaction_id;
@@ -64,13 +64,22 @@ module renode_axi_subordinate (
       address_last = address + transfer_bytes * burst_length;
       for (; address <= address_last; address += transfer_bytes) begin
         // The conection.read call may cause elapse of a simulation time.
+`ifdef RENODE_DEBUG        
+        $display("renode_axi_subordonate.read_transaction {\n @Address: 'h%h\n" ,address);
+`endif        
         connection.read(renode_pkg::address_t'(address), valid_bits, data, is_error);
         if (is_error) begin
           connection.log_warning($sformatf("Unable to read data from Renode at address 'h%h, the 0 value sent to bus.", address));
           data = 0;
         end
         data = data & valid_bits;
+`ifdef RENODE_DEBUG        
+         $display(" -S- renode_axi_subordonate.set_read_response( 'h%h@'h%h\\n" ,data,address);
+`endif         
         set_read_response(transaction_id, data_t'(data) << ((address % transfer_bytes) * 8), is_error ? SlaveError : Okay, address == address_last);
+`ifdef RENODE_DEBUG        
+       $display("renode_axi_subordonate.read_transaction \n}\n" );
+`endif       
       end
     end
   endtask
