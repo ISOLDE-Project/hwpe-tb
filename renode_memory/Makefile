@@ -74,16 +74,23 @@ all: files
 files: $(SV_FILES) ../Bender.yml
 	bender script verilator -t rtl -t verilator > $@
 
-run: obj_dir/V$(TOP_MODULE)
+run: obj_dir/V$(TOP_MODULE) $(ELF_FILE)
 	obj_dir/V$(TOP_MODULE) -f $(ELF_FILE) -e 1
 
 obj_dir/V$(TOP_MODULE): obj_dir/V$(TOP_MODULE).mk
 	$(MAKE) -C obj_dir/ -f V$(TOP_MODULE).mk -j$(num_cores_half)
 
-.PHONY: obj_dir/V$(TOP_MODULE).mk
+
+$(ELF_FILE): $(RENODE_MEMORY_DIR)/apps/test/aida/Makefile
+	$(MAKE) -C 	$(RENODE_MEMORY_DIR)/apps/test/aida
+	
+.PHONY: obj_dir/V$(TOP_MODULE).mk test
 
 obj_dir/V$(TOP_MODULE).mk : all
 
+test:
+	python ./smoke.py 
+	
 show-config:
 	$(VERILATOR) -V
 	@echo "Verilator usage:"

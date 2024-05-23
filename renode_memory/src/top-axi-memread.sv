@@ -33,7 +33,7 @@ module master (
 
 
   address_t address_begin = 32'h1000;
-  address_t address_end = 32'h11C0;
+  address_t address_end = 32'h11A8+32'h8; //elfloader adds 2 guard dwords at the end: 32'hcadebaba  and 32'hacdcface
 
   address_t address = address_begin;
   valid_bits_e data_bits = renode_pkg::DoubleWord;
@@ -59,9 +59,9 @@ module master (
      rdata32 = int'(rdata[31:0]);
 
       if (addr == addr_end) begin
-        $fwrite(f, "%d", int'(rdata32));
+        $fwrite(f, "0x%h", int'(rdata32));
       end else begin
-        $fwrite(f, "%d,", rdata32);
+        $fwrite(f, "0x%h,", rdata32);
       end
     end
   endtask
@@ -134,7 +134,7 @@ module master (
   always_ff @(posedge m_axi_if.aclk) begin
     if (test_done) begin
       close_file(fd);
-      $display("\n Test completed\n");
+      $display("\n Test completed. Run make test to evaluate results\n");
       $finish(0);
     end
   end
