@@ -75,7 +75,7 @@ files: $(SV_FILES) ../Bender.yml
 	bender script verilator -t rtl -t verilator > $@
 
 run: obj_dir/V$(TOP_MODULE) $(ELF_FILE)
-	obj_dir/V$(TOP_MODULE) -f $(ELF_FILE) -e 1
+	obj_dir/V$(TOP_MODULE) -f $(ELF_FILE) -e -t 20000
 
 obj_dir/V$(TOP_MODULE): obj_dir/V$(TOP_MODULE).mk
 	$(MAKE) -C obj_dir/ -f V$(TOP_MODULE).mk -j$(num_cores_half)

@@ -10,18 +10,15 @@
 import renode_memory_pkg::*;
 
 module master (
-    input  logic                             clk,
-    input  logic                             areset_n,
     input  renode_pkg::bus_connection        bus_controller,
-    output renode_memory_pkg::mem_out_req_t  mem_out_req_o,
-    input  renode_memory_pkg::mem_out_resp_t mem_out_req_i
+    mem_axi_if axi_conn
 );
 
-  renode_axi_if m_axi_if (.aclk(clk));
-  assign m_axi_if.areset_n = areset_n;
+  renode_axi_if m_axi_if (.aclk(axi_conn.clk_i));
+  assign m_axi_if.areset_n = axi_conn.rst_ni;
 
-  `__RENODE_TO_REQ(mem_out_req_o, m_axi_if)
-  `__RESP_TO_RENODE(m_axi_if, mem_out_req_i)
+  `__RENODE_TO_REQ(axi_conn.req, m_axi_if)
+  `__RESP_TO_RENODE(m_axi_if, axi_conn.resp)
 
 
   renode_axi_manager m_axi_mem (
@@ -128,27 +125,17 @@ module top (
   renode_connection connection = new();
   bus_connection    bus_peripheral = new(connection);
   bus_connection    bus_controller = new(connection);
-  renode_axi_if axi_if (.aclk(clk_i));
-  assign axi_if.areset_n = rst_ni;
-  renode_memory_pkg::axi_connection_req_t  axi_req;
-  renode_memory_pkg::axi_connection_resp_t axi_resp;
-  //
 
-
-  `__RENODE_TO_RESP(axi_resp, axi_if)
-  `__REQ_TO_RENODE(axi_if, axi_req)
+  mem_axi_if axi_conn(clk_i,rst_ni);
 
   renode_memory mem (
-      .s_axi_if(axi_if),
-      .bus_peripheral(bus_peripheral)
+      .bus_peripheral(bus_peripheral),
+      .axi_conn
   );
 
   master ctr (
-      .clk(clk_i),
-      .areset_n(rst_ni),
       .bus_controller(bus_controller),
-      .mem_out_req_o(axi_req),
-      .mem_out_req_i(axi_resp)
+      .axi_conn
   );
   // Print some stuff as an example
   initial begin

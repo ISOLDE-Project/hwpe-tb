@@ -29,7 +29,7 @@ struct MemorySim{
 typedef ELFLoader::addr_type addr_type;
 
     MemorySim(int argc, char** argv);
-    int main(std::string& binaryfile);
+    int main(std::string& binaryfile, uint32_t);
    
     //
     const std::unique_ptr<VerilatedContext> contextp;

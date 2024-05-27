@@ -2,12 +2,22 @@
 // Solderpad Hardware License, Version 0.51, see LICENSE for details.
 // SPDX-License-Identifier: SHL-0.51
 
-module renode_memory (
+`include "renode_assign.svh"
+
+module renode_memory 
+(
     
-    renode_axi_if s_axi_if,
-    input renode_pkg::bus_connection bus_peripheral
+    input renode_pkg::bus_connection bus_peripheral,
+    mem_axi_if axi_conn
 
 );
+
+
+  renode_axi_if s_axi_if (.aclk(axi_conn.clk_i));
+   assign s_axi_if.areset_n = axi_conn.rst_ni;
+
+  `__RENODE_TO_RESP(axi_conn.resp, s_axi_if)
+  `__REQ_TO_RENODE(s_axi_if, axi_conn.req)
 
   renode_axi_subordinate s_axi_mem (
       s_axi_if,

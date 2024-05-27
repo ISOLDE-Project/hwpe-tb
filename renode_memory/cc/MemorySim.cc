@@ -1,8 +1,7 @@
 #include "MemorySim.hh"
 
 
-#define CYCLES    1000 
-#define TIMEOUT   100*CYCLES
+
 
 namespace ISOLDE{
 
@@ -31,7 +30,7 @@ MemorySim::MemorySim(int argc, char** argv): contextp{new VerilatedContext},main
 
 }
 
-int MemorySim::main(std::string& binaryFile){
+int MemorySim::main(std::string& binaryFile, uint32_t timeOut){
 
     loader.readElf(binaryFile);
        fprintf(stderr,"PROGRAM_SIZE=%u Bytes, %.2f MB \n",
@@ -51,7 +50,7 @@ int MemorySim::main(std::string& binaryFile){
     contextp->time(0);
     int hold_reset=3;
     // Simulate until $finish
-    while (!contextp->gotFinish()  && main_time < TIMEOUT && !endOfTestSequence ) {
+    while (!contextp->gotFinish()  && main_time < timeOut && !endOfTestSequence ) {
         // Historical note, before Verilator 4.200 Verilated::gotFinish()
         // was used above in place of contextp->gotFinish().
         // Most of the contextp-> calls can use Verilated:: calls instead;

@@ -17,14 +17,16 @@ double sc_time_stamp() { return 0; }
 int main(int argc, char** argv) {
    
   std::string binaryFile;
-  bool export_py{false};
+  uint32_t timeOut{500};
   CLI::App app{"test bench"};
   app.add_option("-f,--file", binaryFile, "Specifies the RISC-V program binary file (elf)")->required(); 
-  app.add_option("-e,--export", export_py, "export binary file (elf) to py"); 
+  //app.add_option("-e,--export", export_py, "export binary file (elf) to py"); 
+  CLI::Option* export_flag = app.add_flag("-e,--export", "export binary file (elf) to py");
+  app.add_option("-t,--time-out", timeOut, "simulation timeout"); 
   CLI11_PARSE(app, argc, argv);
 
 
-    if(export_py){
+    if(export_flag->count()){
         ELFLoader loader;
         loader.readElf(binaryFile);
          
@@ -40,5 +42,5 @@ int main(int argc, char** argv) {
     }
 
     auto sim = std::make_unique<ISOLDE::MemorySim>(argc, argv);
-    return sim->main(binaryFile);
+    return sim->main(binaryFile,timeOut);
 }

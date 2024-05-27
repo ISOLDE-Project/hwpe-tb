@@ -24,5 +24,7 @@ sources:
       - renode_memory/hdl/modules/axi/renode_axi_subordinate.sv
       - renode_memory/hdl/modules/renode_interrupts.sv
       - renode_memory/hdl/renode.sv
+      - renode_memory/src/mem_axi_if.sv
       - renode_memory/src/renode_memory_pkg.sv
       - renode_memory/src/renode_memory.sv
+      
