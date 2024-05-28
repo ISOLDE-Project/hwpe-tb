@@ -10,8 +10,8 @@
 import renode_memory_pkg::*;
 
 module master (
-    input  renode_pkg::bus_connection        bus_controller,
-    mem_axi_if axi_conn
+    input renode_pkg::bus_connection bus_controller,
+          mem_axi_if                 axi_conn
 );
 
   renode_axi_if m_axi_if (.aclk(axi_conn.clk_i));
@@ -47,11 +47,11 @@ module master (
   always_ff @(posedge m_axi_if.aclk) begin
 
     do @(posedge m_axi_if.aclk); while (!m_axi_if.areset_n);
-    
+
     $display("\n[%0t] Word test...\n", $time);
     bus_controller.read(address, data_bits, rdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
-    address = address+2;
+    address = address + 2;
     bus_controller.read(address, data_bits, rdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
 
@@ -85,9 +85,9 @@ module master (
     stopAtError(is_error, `__FILE__, `__LINE__);
     bus_controller.read(address, data_bits, rdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
-    
+
     // QuadWord test 
-     $display("\n[%0t] QuadWord test...\n", $time);
+    $display("\n[%0t] QuadWord test...\n", $time);
     address = 32'h1000;
     data_bits = renode_pkg::QuadWord;
     wdata = 32'h400;
@@ -101,7 +101,7 @@ module master (
     stopAtError(is_error, `__FILE__, `__LINE__);
     bus_controller.read(address, data_bits, rdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
-    
+
     if (wdata != rdata) begin
       string error_msg;
       error_msg = $sformatf("Test for QuadWord data has FAILED! wdata!= rdata\n");
@@ -127,7 +127,10 @@ module top (
   bus_connection    bus_peripheral = new(connection);
   bus_connection    bus_controller = new(connection);
 
-  mem_axi_if axi_conn(clk_i,rst_ni);
+  mem_axi_if axi_conn (
+      clk_i,
+      rst_ni
+  );
 
   renode_memory mem (
       .bus_peripheral(bus_peripheral),

@@ -12,8 +12,8 @@ typedef int address32_t;
 typedef int data32_t;
 
 module master (
-    input  renode_pkg::bus_connection        bus_controller,
-    mem_axi_if axi_conn
+    input renode_pkg::bus_connection bus_controller,
+          mem_axi_if                 axi_conn
 );
 
   renode_axi_if m_axi_if (.aclk(axi_conn.clk_i));
@@ -52,7 +52,7 @@ module master (
     int rdata32;
     begin
 
-     rdata32 = int'(rdata[31:0]);
+      rdata32 = int'(rdata[31:0]);
 
       if (addr == addr_end) begin
         $fwrite(f, "0x%h", int'(rdata32));
@@ -110,7 +110,7 @@ module master (
   end
 
   always_ff @(posedge m_axi_if.aclk) begin
-   
+
     do @(posedge m_axi_if.aclk); while (!m_axi_if.areset_n);
 
     bus_controller.read(address, data_bits, rdata, is_error);
@@ -148,8 +148,11 @@ module top (
   renode_connection connection = new();
   bus_connection    bus_peripheral = new(connection);
   bus_connection    bus_controller = new(connection);
- 
-   mem_axi_if axi_conn(clk_i,rst_ni);
+
+  mem_axi_if axi_conn (
+      clk_i,
+      rst_ni
+  );
 
   renode_memory mem (
       .bus_peripheral(bus_peripheral),
@@ -160,7 +163,7 @@ module top (
       .bus_controller(bus_controller),
       .axi_conn
   );
-  
+
   initial begin
     if ($test$plusargs("trace") != 0) begin
       $display("[%0t] Tracing to logs/vlt_dump.vcd...\n", $time);

@@ -4,7 +4,7 @@
 
 package renode_memory_pkg;
 
-`include "axi/typedef.svh"
+  `include "axi/typedef.svh"
 
   localparam int unsigned AddrWidth = 32;
   localparam int unsigned DataWidth = 32;
@@ -20,10 +20,10 @@ package renode_memory_pkg;
 
 
 
-   `AXI_TYPEDEF_ALL(mem_in, addr_t, id_t, data_t, strb_t, user_t)
-   `AXI_TYPEDEF_ALL(mem_out, addr_t, id_t, data_t, strb_t, user_t)
+  `AXI_TYPEDEF_ALL(mem_in, addr_t, id_t, data_t, strb_t, user_t)
+  `AXI_TYPEDEF_ALL(mem_out, addr_t, id_t, data_t, strb_t, user_t)
 
-   `AXI_TYPEDEF_ALL(axi_connection, addr_t, id_t, data_t, strb_t, user_t)
+  `AXI_TYPEDEF_ALL(axi_connection, addr_t, id_t, data_t, strb_t, user_t)
 
 
 endpackage
