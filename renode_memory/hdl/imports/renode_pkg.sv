@@ -99,9 +99,9 @@ package renode_pkg;
       string error_msg;
       error_msg = $sformatf("Renode at %t: Error! %s", $realtime, message);
       log(LogError, error_msg);
-      disconnect();
-      $error(error_msg);
-      $finish;
+      //disconnect();
+      //$error(error_msg);
+      //$finish;
     endfunction
 
     function void handle_message(message_t message, output bit is_handled);

@@ -70,7 +70,7 @@ static const char* decodeAction(int action){
         *address = g_rx.address;
         *data    = g_rx.data;
         ISOLDE::DataUnion src;
-        ISOLDE::MemorySim::fetchData(g_rx.address,src);
+        bool fetchStatus = ISOLDE::MemorySim::fetchData(g_rx.address,src);
         switch( g_rx.action){
             default:
                 printf("renodeDPISendToAsync, unknown action=%d, for address=0x%llx, data=0x%llx\n", *action, *address,*data);
@@ -97,7 +97,7 @@ static const char* decodeAction(int action){
                   break;
         };
 
-        printf("renodeDPIReceive: value =0x%llx  @address=0x%llx\n", *data,*address);
+        printf("renodeDPIReceive: status= %s, value =0x%llx  @address=0x%llx\n", fetchStatus?"OK":"FAILED",*data,*address);
         return 1;
 
     }

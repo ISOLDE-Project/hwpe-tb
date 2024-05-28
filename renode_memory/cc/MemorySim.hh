@@ -36,15 +36,11 @@ typedef ELFLoader::addr_type addr_type;
     vluint64_t main_time;
     //static ELFLoader& getELFLoader();
  
-    static void fetchData(const addr_type addr_, DataUnion& dst)  {
-        volatile uint32_t* data = loader.getStorage();
-         auto  idx= ELFLoader::addr_to_index(addr_);
-        dst.ui32 = data[idx];
+    static bool fetchData(const addr_type addr_, DataUnion& dst)  {
+       return loader.fetchData( addr_,  dst.ui32);
   }
-    static void pushData(const addr_type addr_,  DataUnion& src)  {
-  volatile uint32_t* data = loader.getStorage();
-         auto  idx= ELFLoader::addr_to_index(addr_);
-    data[idx]=src.ui32;
+    static bool pushData(const addr_type addr_,  DataUnion& src)  {
+      return  loader.pushData(addr_,   src.ui32) ;
   }
 
     private:

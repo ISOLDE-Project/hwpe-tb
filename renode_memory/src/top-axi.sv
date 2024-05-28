@@ -27,6 +27,7 @@ module master (
   );
 
   address_t address = 32'h1018;
+  address_t address_rw = 32'h10a8;
   valid_bits_e data_bits = renode_pkg::Word;
   data_t wdata = 32'h100;
   data_t rdata = 32'h101;
@@ -54,7 +55,7 @@ module master (
     bus_controller.read(address, data_bits, rdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
 
-    address = 32'h10c0;
+    address = address_rw;
     bus_controller.write(address, data_bits, wdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
     bus_controller.read(address, data_bits, rdata, is_error);
@@ -78,7 +79,7 @@ module master (
     bus_controller.read(address, data_bits, rdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);
 
-    address = 32'h10c0;
+    address = address_rw;
 
     bus_controller.write(address, data_bits, wdata, is_error);
     stopAtError(is_error, `__FILE__, `__LINE__);

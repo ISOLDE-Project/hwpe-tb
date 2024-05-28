@@ -17,12 +17,15 @@ const size_t ROM_ORIGIN = 0x00001000;
 
 struct ELFLoader {
 
-  unsigned IDX_MAX = 0;
-  uint32_t startAddress;
   typedef uint32_t addr_type;
   typedef uint32_t data_type;
   typedef uint32_t index_type;
+
   typedef std::vector<data_type> storage_type;
+
+  //
+  index_type IDX_MAX = 0;
+  addr_type startAddress;
   storage_type storage;
 
   ELFLoader() {  }
@@ -47,9 +50,18 @@ struct ELFLoader {
 
   data_type getStartAddress(){ return startAddress;}
  
-   static inline index_type addr_to_index(const addr_type addr_){
-    addr_type addr = addr_-ROM_ORIGIN;
-    return static_cast<index_type>(addr>>2);
+    inline bool addr_to_index(const addr_type addr_, index_type& index){
+    bool result = false;
+    index = 0;
+    if(addr_>=ROM_ORIGIN){
+      addr_type addr = addr_-ROM_ORIGIN;
+      index = static_cast<index_type>(addr>>2);
+      if (index < storage.size())
+        result = true;
+      else
+        index = 0;
+    }
+    return result;
   }
   /**
   ** expands elf content value from 8 bit to 32 bit
@@ -127,6 +139,24 @@ uint32_t computeImageSize(ElfFile& elfFile){
     fprintf(stderr, "max_idx() =%d, storage.size()=%zu\n", max_idx(),storage.size());
   
   }
+
+   bool fetchData(const addr_type addr_, uint32_t& dst)  {
+         index_type  idx;
+         bool result = addr_to_index(addr_, idx);
+         if( result )
+             dst = getStorage()[idx];
+        else
+              dst =0xDEAD;
+        return result;
+  }
+
+  bool pushData(const addr_type addr_,  const uint32_t src)  {
+         index_type  idx;
+         bool result = addr_to_index(addr_, idx);
+         if( result )
+            getStorage()[idx]=src;
+          return result;
+  }
 };
 
 
@@ -162,3 +192,4 @@ void csv_pretty_print(FILE* trace, std::string& name, container_type& container)
     fprintf(trace, "\n");
   }
 }
+
