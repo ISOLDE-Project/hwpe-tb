@@ -6,8 +6,8 @@
 //
 
 interface mem_axi_if #(
-  parameter int unsigned AddrWidth = 32,
-  parameter int unsigned DataWidth = 32,
+  parameter int unsigned AddrWidth = 64,
+  parameter int unsigned DataWidth = 64,
   parameter int unsigned IdWidthIn = 8,
   parameter int unsigned UserWidth = 1
 ) (

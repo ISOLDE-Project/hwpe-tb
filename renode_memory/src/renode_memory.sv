@@ -4,7 +4,11 @@
 
 `include "renode_assign.svh"
 
-module renode_memory 
+module renode_memory  #(
+    int unsigned AddressWidth = 64,
+    int unsigned DataWidth = 64,
+    int unsigned TransactionIdWidth = 8
+) 
 (
     
     input renode_pkg::bus_connection bus_peripheral,
@@ -13,7 +17,7 @@ module renode_memory
 );
 
 
-  renode_axi_if s_axi_if (.aclk(axi_conn.clk_i));
+  renode_axi_if#(.AddressWidth(AddressWidth),.DataWidth(DataWidth),.TransactionIdWidth(TransactionIdWidth)) s_axi_if (.aclk(axi_conn.clk_i));
    assign s_axi_if.areset_n = axi_conn.rst_ni;
 
   `__RENODE_TO_RESP(axi_conn.resp, s_axi_if)
