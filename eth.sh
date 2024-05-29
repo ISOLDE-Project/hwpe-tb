@@ -16,7 +16,7 @@ MINICONDA_ENV=snitch
 export ROOT_DIR=$(git rev-parse --show-toplevel)
 
 export BENDER=~/eth/bin/bender
-export PULP_RISCV_GCC_TOOLCHAIN=~/isolde-project/install/riscv
+export PULP_RISCV_GCC_TOOLCHAIN=$ROOT_DIR/install/riscv
 
 
 

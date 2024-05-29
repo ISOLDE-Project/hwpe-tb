@@ -20,11 +20,11 @@ module renode_axi_subordinate (
 
   always @(connection.reset_assert_request) begin
     $display("renode_axi_subordinate::reset_assert_request");
-    bus.awready =0;
-    bus.wready =0;
-    bus.bvalid = 0;
-    bus.arready = 0;
-    bus.rvalid =0;
+    bus.awready  = 0;
+    bus.wready   = 0;
+    bus.bvalid   = 0;
+    bus.arready  = 0;
+    bus.rvalid   = 0;
     bus.areset_n = 0;
     // The reset takes 2 cycles to prevent a race condition without usage of a non-blocking assigment.
     repeat (2) @(posedge clk);
@@ -32,14 +32,21 @@ module renode_axi_subordinate (
   end
 
   always @(connection.reset_deassert_request) begin
+    $display("renode_axi_subordinate::reset_deassert_request");
     bus.areset_n = 1;
     // There is one more wait for the clock edges to be sure that all modules aren't in a reset state.
     repeat (2) @(posedge clk);
     connection.reset_deassert_respond();
   end
 
-  always @(clk )  if(bus.areset_n) begin $display("renode_axi_subordinate::read_transaction");read_transaction();end
-  always @(clk )  if(bus.areset_n) begin $display("renode_axi_subordinate::write_transaction");write_transaction();end
+  always @(clk)
+    if (bus.areset_n) begin
+      read_transaction();
+    end
+  always @(clk)
+    if (bus.areset_n) begin
+      write_transaction();
+    end
 
   task static read_transaction();
     transaction_id_t transaction_id;
@@ -55,22 +62,34 @@ module renode_axi_subordinate (
 
     get_read_address(transaction_id, address, burst_size, burst_length, burst_type);
     valid_bits = bus.burst_size_to_valid_bits(burst_size);
-    if(!is_access_valid(address, valid_bits, burst_type)) begin
+    if (!is_access_valid(address, valid_bits, burst_type)) begin
       // The invalid access causes a fatal error, so there is no need to response to all transfers
       set_read_response(transaction_id, 0, SlaveError, address == address_last);
-    end
-    else begin
-      transfer_bytes = 2**burst_size;
-      address_last = address + transfer_bytes * burst_length;
+    end else begin
+      transfer_bytes = 2 ** burst_size;
+      address_last   = address + transfer_bytes * burst_length;
       for (; address <= address_last; address += transfer_bytes) begin
         // The conection.read call may cause elapse of a simulation time.
+`ifdef RENODE_DEBUG
+        $display("renode_axi_subordonate.read_transaction {\n @Address: 'h%h\n", address);
+`endif
         connection.read(renode_pkg::address_t'(address), valid_bits, data, is_error);
         if (is_error) begin
-          connection.log_warning($sformatf("Unable to read data from Renode at address 'h%h, the 0 value sent to bus.", address));
+          connection.log_warning(
+              $sformatf(
+              "Unable to read data from Renode at address 'h%h, the 0 value sent to bus.", address
+              ));
           data = 0;
         end
         data = data & valid_bits;
-        set_read_response(transaction_id, data_t'(data) << ((address % transfer_bytes) * 8), is_error ? SlaveError : Okay, address == address_last);
+`ifdef RENODE_DEBUG
+        $display(" -S- renode_axi_subordonate.set_read_response( 'h%h@'h%h\\n", data, address);
+`endif
+        set_read_response(transaction_id, data_t'(data) << ((address % transfer_bytes) * 8),
+                          is_error ? SlaveError : Okay, address == address_last);
+`ifdef RENODE_DEBUG
+        $display("renode_axi_subordonate.read_transaction \n}\n");
+`endif
       end
     end
   endtask
@@ -90,12 +109,11 @@ module renode_axi_subordinate (
 
     get_write_address(transaction_id, address, burst_size, burst_length, burst_type);
     valid_bits = bus.burst_size_to_valid_bits(burst_size);
-    if(!is_access_valid(address, valid_bits, burst_type)) begin
+    if (!is_access_valid(address, valid_bits, burst_type)) begin
       set_write_response(transaction_id, SlaveError);
-    end
-    else begin
-      transfer_bytes = 2**burst_size;
-      address_last = address + transfer_bytes * burst_length;
+    end else begin
+      transfer_bytes = 2 ** burst_size;
+      address_last   = address + transfer_bytes * burst_length;
 
       do @(posedge clk); while (!bus.wvalid);
       bus.wready <= 0;
@@ -103,9 +121,13 @@ module renode_axi_subordinate (
       for (; address <= address_last; address += transfer_bytes) begin
         do @(posedge clk); while (!bus.wvalid);
         data = bus.wdata >> ((address % transfer_bytes) * 8);
-        if (bus.wlast != (address == address_last)) connection.log_warning("Unexpected state of the wlast signal.");
-        connection.write(renode_pkg::address_t'(address), valid_bits, renode_pkg::data_t'(data) & valid_bits, is_error);
-        if (is_error) connection.log_warning($sformatf("Unable to write data to Renode at address 'h%h", address));
+        if (bus.wlast != (address == address_last))
+          connection.log_warning("Unexpected state of the wlast signal.");
+        connection.write(renode_pkg::address_t'(address), valid_bits,
+                         renode_pkg::data_t'(data) & valid_bits, is_error);
+        if (is_error)
+          connection.log_warning($sformatf("Unable to write data to Renode at address 'h%h", address
+                                 ));
       end
 
       @(posedge clk);
@@ -116,12 +138,13 @@ module renode_axi_subordinate (
     end
   endtask
 
-  function static is_access_valid(address_t address, renode_pkg::valid_bits_e valid_bits, burst_type_e burst_type);
-    if(!renode_pkg::is_access_aligned(renode_pkg::address_t'(address), valid_bits)) begin
+  function static is_access_valid(address_t address, renode_pkg::valid_bits_e valid_bits,
+                                  burst_type_e burst_type);
+    if (!renode_pkg::is_access_aligned(renode_pkg::address_t'(address), valid_bits)) begin
       connection.fatal_error("AXI Subordinate doesn't support unaligned access.");
       return 0;
     end
-    if(burst_type != Incrementing) begin
+    if (burst_type != Incrementing) begin
       connection.fatal_error($sformatf("Unsupported burst type 'b%b", burst_type));
       return 0;
     end
@@ -129,7 +152,8 @@ module renode_axi_subordinate (
   endfunction
 
   task static get_read_address(output transaction_id_t transaction_id, output address_t address,
-                               output burst_size_t burst_size, output burst_length_t burst_length, output burst_type_e burst_type);
+                               output burst_size_t burst_size, output burst_length_t burst_length,
+                               output burst_type_e burst_type);
     @(posedge clk);
     bus.arready <= 1;
 
@@ -143,7 +167,8 @@ module renode_axi_subordinate (
   endtask
 
   task static get_write_address(output transaction_id_t transaction_id, output address_t address,
-                                output burst_size_t burst_size, output burst_length_t burst_length, output burst_type_e burst_type);
+                                output burst_size_t burst_size, output burst_length_t burst_length,
+                                output burst_type_e burst_type);
     @(posedge clk);
     bus.awready <= 1;
 
@@ -156,18 +181,19 @@ module renode_axi_subordinate (
     bus.awready <= 0;
   endtask
 
-  task static set_read_response(transaction_id_t transaction_id, data_t data, response_e response, bit last);
-        @(posedge clk);
-        bus.rid <= transaction_id;
-        bus.rdata <= data;
-        bus.rresp <= response;
-        bus.rlast <= last;
-        bus.rvalid <= 1;
+  task static set_read_response(transaction_id_t transaction_id, data_t data, response_e response,
+                                bit last);
+    @(posedge clk);
+    bus.rid <= transaction_id;
+    bus.rdata <= data;
+    bus.rresp <= response;
+    bus.rlast <= last;
+    bus.rvalid <= 1;
 
-        // It's required to assert the valid and ready signals only for one clock cycle.
-        do @(posedge clk); while (!bus.rready);
-        bus.rlast  <= 0;
-        bus.rvalid <= 0;
+    // It's required to assert the valid and ready signals only for one clock cycle.
+    do @(posedge clk); while (!bus.rready);
+    bus.rlast  <= 0;
+    bus.rvalid <= 0;
   endtask
 
   task static set_write_response(transaction_id_t id, response_e response);

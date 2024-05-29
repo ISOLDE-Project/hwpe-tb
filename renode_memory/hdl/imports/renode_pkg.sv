@@ -99,9 +99,9 @@ package renode_pkg;
       string error_msg;
       error_msg = $sformatf("Renode at %t: Error! %s", $realtime, message);
       log(LogError, error_msg);
-      disconnect();
-      $error(error_msg);
-      $finish;
+      //disconnect();
+      //$error(error_msg);
+      //$finish;
     endfunction
 
     function void handle_message(message_t message, output bit is_handled);
@@ -218,12 +218,18 @@ package renode_pkg;
       read_transaction_data_bits = data_bits;
       ->read_transaction_request;
       @(read_transaction_response) begin
+`ifdef RENODE_DEBUG        
+         $display("++  bus_connection.read()@read_transaction_response: Data='h%h @Address: 'h%h", read_transaction_data, read_transaction_address);
+`endif         
         data = read_transaction_data;
         is_error = read_transaction_is_error;
       end
     endtask
 
     task read_respond(data_t data, bit is_error);
+`ifdef RENODE_DEBUG    
+      $display("bus_connection.read_respond(data='h%h, is_error=%b )\n",data, is_error);
+`endif
       read_transaction_data = data;
       read_transaction_is_error = is_error;
       ->read_transaction_response;

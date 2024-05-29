@@ -6,8 +6,8 @@
 //
 
 interface renode_axi_if #(
-    int unsigned AddressWidth = 32,
-    int unsigned DataWidth = 32,
+    int unsigned AddressWidth = 64,
+    int unsigned DataWidth = 64,
     int unsigned TransactionIdWidth = 8
 ) (
     input logic aclk

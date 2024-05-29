@@ -15,4 +15,9 @@ hw/ipstools/
 *.dat
 obj_dir/
 files
-renode_memory/*.py
+vivado/
+vivado*
+.Xil/
+Bender.lock
+*.tar.gz
+dump.py

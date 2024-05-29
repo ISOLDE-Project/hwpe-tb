@@ -1,4 +1,5 @@
 ROOT_DIR := $(shell git rev-parse --show-toplevel)
+RENODE_MEMORY_ROOT_DIR := $(ROOT_DIR)
 
 CXX := g++-10
 
@@ -17,6 +18,7 @@ VERIL_VERSION           ?= v5.024
 
 VERILATOR = $(VERIL_INSTALL_DIR)/bin/verilator
 VERILATOR_COVERAGE = $(VERIL_INSTALL_DIR)/bin/verilator_coverage
+
 
 # Generate C++ in executable form
 VERILATOR_FLAGS += -cc --exe
@@ -55,26 +57,40 @@ VERILATOR_FLAGS += -Wno-REDEFMACRO
 #
 VERILATOR_FLAGS += -Wno-ASSIGNIN
 
-HDL_DIR := hdl
-SV_FILES := $(wildcard $(SRC_DIR)/*.sv)
+RENODE_MEMORY_DIR := $(RENODE_MEMORY_ROOT_DIR)/renode_memory
+
 TOP_MODULE := top
+TOP_MODULE_SV ?= src/top-axi.sv
+RENODE_MEMORY_FILES := $(RENODE_MEMORY_DIR)/cc/sim_main.cc $(RENODE_MEMORY_DIR)/cc/MemorySim.cc $(RENODE_MEMORY_DIR)/cc/renode_dpi.cc $(RENODE_MEMORY_DIR)/cc_elf/lib/elfFile.cpp
+ELF_FILE  := $(CURDIR)/../build/sw/tb_hwpe.c/verif
+
+INC_ELF_DIR := cc_elf/lib
+ELF_FILE :=  $(RENODE_MEMORY_DIR)/apps/test/aida/test.riscv32
+
 
 all: files
-	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -f files src/top.sv  cc/sim_main.cc cc/renode_dpi.cc --top-module $(TOP_MODULE)
+	$(VERILATOR) $(VERILATOR_FLAGS) -I$(RENODE_MEMORY_DIR)/hdl/imports   -CFLAGS -I$(RENODE_MEMORY_DIR)/$(INC_ELF_DIR) -f files $(RENODE_MEMORY_FILES) $(TOP_MODULE_SV)  --top-module $(TOP_MODULE)
 
-files: $(SV_FILES) Bender.yml
+files: $(SV_FILES) ../Bender.yml
 	bender script verilator -t rtl -t verilator > $@
 
-run: obj_dir/V$(TOP_MODULE)
-	obj_dir/V$(TOP_MODULE)
+run: obj_dir/V$(TOP_MODULE) $(ELF_FILE)
+	obj_dir/V$(TOP_MODULE) -f $(ELF_FILE) -e -t 20000
 
 obj_dir/V$(TOP_MODULE): obj_dir/V$(TOP_MODULE).mk
-	$(MAKE) -C obj_dir/ -f V$(TOP_MODULE).mk -j6
+	$(MAKE) -C obj_dir/ -f V$(TOP_MODULE).mk -j$(num_cores_half)
 
-.PHONY: obj_dir/V$(TOP_MODULE).mk
+
+$(ELF_FILE): $(RENODE_MEMORY_DIR)/apps/test/aida/Makefile
+	$(MAKE) -C 	$(RENODE_MEMORY_DIR)/apps/test/aida
+	
+.PHONY: obj_dir/V$(TOP_MODULE).mk test
 
 obj_dir/V$(TOP_MODULE).mk : all
 
+test:
+	python ./smoke.py 
+	
 show-config:
 	$(VERILATOR) -V
 	@echo "Verilator usage:"

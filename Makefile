@@ -15,6 +15,7 @@
 # 
 
 mkfile_path := $(dir $(abspath $(firstword $(MAKEFILE_LIST))))
+prj_path := $(shell git rev-parse --show-toplevel)
 gui ?= 0
 P_STALL ?= 0.0
 BUILD_DIR ?= build
@@ -25,7 +26,7 @@ num_cores_half := $(shell echo "$$(($(num_cores) / 2))")
 
 
 INSTALL_PREFIX          ?= install
-INSTALL_DIR             ?= $(CURDIR)/${INSTALL_PREFIX}
+INSTALL_DIR             ?= $(prj_path)/${INSTALL_PREFIX}
 GCC_INSTALL_DIR         ?= ${INSTALL_DIR}/riscv-gcc
 LLVM_INSTALL_DIR        ?= ${INSTALL_DIR}/riscv-llvm
 ISA_SIM_INSTALL_DIR     ?= ${INSTALL_DIR}/riscv-isa-sim
@@ -132,6 +133,7 @@ ${VERIL_INSTALL_DIR}: Makefile
 print-env:
 	@echo "The Makefile is located in $(CURDIR)"
 	@echo "mkfile_path: $(mkfile_path)"
+	@echo "prj_path: $(prj_path)"
 	@echo "PULP_RISCV_GCC_TOOLCHAIN: $(PULP_RISCV_GCC_TOOLCHAIN)"
 	@echo "Cores: $(num_cores)"
 	@echo "Cores divided by 2: $(num_cores_half)"
@@ -144,3 +146,9 @@ cores:
 	@num_cores=$$(nproc); \
 	num_cores=$$((num_cores / 2)); \
 	echo "Number of cores available on this machine (divided by 2): $$num_cores"
+
+riscv32-elf-gcc: toolchain/riscv32-elf-gcc
+	cd toolchain && \
+	wget  `cat $(CURDIR)/$<` -O riscv.tar.gz && \
+	tar -xzvf riscv.tar.gz -C  $(CURDIR)/install/ riscv
+	
