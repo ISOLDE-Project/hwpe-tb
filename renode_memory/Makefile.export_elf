@@ -1,15 +1,21 @@
 include Makefile
 
-LIBDIR += cc_elf/lib
+CC_DIR := cc_elf
+LIB_DIR := $(CC_DIR)/lib
 
-INPUT_ELF = ../../resnet18.riscv32
-OUTPUT = output.npy
+# ELF_FILE := ../../resnet18.riscv32
+OUTPUT := output.npy
+#cc_elf/sim_elf.cc cc_elf/renode_elf_dpi.cc cc_elf/lib/elfFile.cpp cc_elf/lib/cnpy.cpp
 
-all: files
-	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -CFLAGS -I$(LIBDIR) -LDFLAGS -lz  -f files src/top.sv  cc_elf/sim_elf.cc cc_elf/renode_elf_dpi.cc cc_elf/lib/elfFile.cpp cc_elf/lib/cnpy.cpp --top-module $(TOP_MODULE)
+CC_FILES := $(wildcard $(CC_DIR)/*.cc)
+LIB_FILES := $(wildcard $(LIB_DIR)/*.cpp)
 
-run: obj_dir/V$(TOP_MODULE)
-	obj_dir/V$(TOP_MODULE) -f $(INPUT_ELF) -o $(OUTPUT)
+all: files $(CC_FILES) $(LIB_FILES)
+	@echo $(CC_FILES)
+	$(VERILATOR) $(VERILATOR_FLAGS) -I$(ROOT_DIR)/renode_memory/hdl/imports -CFLAGS -I$(LIB_DIR) -LDFLAGS -lz  -f files $(TOP_MODULE_SV) $(CC_FILES) $(LIB_FILES) --top-module $(TOP_MODULE)
+
+run: obj_dir/V$(TOP_MODULE) $(ELF_FILE)
+	obj_dir/V$(TOP_MODULE) -f $(ELF_FILE) -o $(OUTPUT) -v +e +t 20000
 
 .PHONY: clean
 clean:
