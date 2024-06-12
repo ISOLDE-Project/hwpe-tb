@@ -28,10 +28,8 @@
 // Current simulation time (64-bit unsigned)
 vluint64_t main_time = 0;
 
-// uint32_t *elf_data;
 ELFLoader loader;
 
-unsigned MAX_IDX;
 // Legacy function required only so linking works on Cygwin and MSVC++
 double sc_time_stamp() { return 0; }
 
@@ -60,8 +58,6 @@ int main(int argc, char **argv) {
   }
 
   loader.readElf(binaryFile);
-//   elf_data = loader.getStorage();
-//   MAX_IDX = loader.max_idx();
   // This is a more complicated example, please also see the simpler
   // examples/make_hello_c.
 
